@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edificio de Evacuación - Clínica del Prado</title>
+    <meta name="theme-color" content="#0B2545">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23008080'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' fill='white' font-family='Arial'%3ECP%3C/text%3E%3C/svg%3E">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============ Paleta de la Brigada (sin cambios) ============ */
+        :root {
+            --teal: #008080;
+            --teal-light: #00A896;
+            --teal-dark: #028090;
+            --navy: #0B2545;
+            --navy-dark: #081C36;
+            --blue-medium: #134074;
+            --bg: #F8FAFC;
+            --green: #10B981;
+            --amber: #F59E0B;
+            --red: #EF4444;
+
+            --fh: clamp(36px, 5.5vh, 50px);   /* alto de cada piso */
+            --lcol: 40px;                     /* columna izquierda (número de piso) */
+            --depth: 28px;                    /* profundidad de la cara lateral */
+            --rise: 16px;                     /* elevación visual de la cara lateral */
+            --font-head: 'Sora', 'Segoe UI', system-ui, sans-serif;
+            --font-body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+            background: var(--bg); color: #1e293b;
+            font-family: var(--font-body); -webkit-font-smoothing: antialiased;
+        }
+        button { font: inherit; color: inherit; cursor: pointer; }
+        :focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+        h1, h2, h3 { font-family: var(--font-head); margin: 0; }
+        .hidden { display: none !important; }
+
+        /* ============ Iconos 3D (mismo estilo de la versión anterior) ============ */
+        .icon-3d-box {
+            background: linear-gradient(135deg, rgba(255,255,255,.4) 0%, rgba(255,255,255,.05) 100%), linear-gradient(135deg, var(--teal-light), var(--teal));
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 20px -5px rgba(0,128,128,.25), inset 0 2px 2px rgba(255,255,255,.8), inset 0 -2px 4px rgba(0,0,0,.15);
+            transition: all .3s cubic-bezier(.34,1.56,.64,1);
+            display: inline-flex; align-items: center; justify-content: center; color: #fff;
+        }
+        .icon-3d-box:hover { transform: translateY(-4px) scale(1.05) rotateX(8deg) rotateY(-8deg); }
+        .icon-3d-box.green { background: linear-gradient(135deg, rgba(255,255,255,.4), rgba(255,255,255,.05)), linear-gradient(135deg, #34d399, var(--green)); }
+        .icon-3d-box.amber { background: linear-gradient(135deg, rgba(255,255,255,.4), rgba(255,255,255,.05)), linear-gradient(135deg, #fbbf24, var(--amber)); }
+        .icon-3d-box.red   { background: linear-gradient(135deg, rgba(255,255,255,.4), rgba(255,255,255,.05)), linear-gradient(135deg, #f87171, var(--red)); }
+        .btn-3d {
+            background: linear-gradient(180deg, var(--teal-light) 0%, var(--teal) 100%);
+            box-shadow: 0 4px 0 var(--teal-dark), 0 6px 12px rgba(0,0,0,.15);
+            transition: all .15s ease; border: 0; color: #fff; font-weight: 700;
+            border-radius: 12px; padding: 9px 16px; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-3d:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--teal-dark), 0 2px 4px rgba(0,0,0,.1); }
+        .btn-3d:disabled { opacity: .6; cursor: progress; }
+        .btn-flat { background: #e2e8f0; border: 0; border-radius: 12px; padding: 9px 14px; font-weight: 700; font-size: 13px; color: #334155; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-flat:hover { background: #cbd5e1; }
+
+        /* ============ Encabezado ============ */
+        header.top {
+            background: linear-gradient(90deg, var(--navy-dark), var(--navy) 55%, var(--blue-medium));
+            color: #fff; border-bottom: 4px solid var(--teal); box-shadow: 0 10px 25px rgba(8,28,54,.25);
+            position: relative; z-index: 20;
+        }
+        .top-in { max-width: 2000px; margin: 0 auto; padding: 6px 16px; display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .logo-box { background: none; padding: 0; border: 0; box-shadow: none; min-width: 70px; min-height: 70px; display: flex; align-items: center; justify-content: center; }
+        .logo-box img { height: 70px; width: auto; max-width: 170px; object-fit: contain; display: block; filter: drop-shadow(0 3px 6px rgba(0,0,0,.45)); }
+        .brand h1 { font-size: clamp(20px, 3.2vw, 28px); font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+        .brand p { margin: 2px 0 0; font-size: 13px; color: #cbd5e1; font-weight: 500; }
+        .top-stats { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+        .stat { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 5px 12px 5px 6px; backdrop-filter: blur(8px); }
+        .stat .icon-3d-box { width: 38px; height: 38px; border-radius: 11px; font-size: 16px; }
+        .stat small { display: block; font-size: 11.5px; color: #cbd5e1; font-weight: 500; }
+        .stat b { font-size: 16px; font-weight: 700; }
+        .stat .bar { width: 120px; height: 6px; background: rgba(255,255,255,.18); border-radius: 99px; overflow: hidden; margin-top: 5px; }
+        .stat .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #34d399, var(--green)); border-radius: 99px; transition: width .5s; }
+        .stat-btn { cursor: pointer; text-align: left; color: #fff; }
+        .stat-btn:hover { background: rgba(255,255,255,.18); }
+
+        /* ============ Distribución ============ */
+        .layout { flex: 1; width: 100%; max-width: 2000px; margin: 0 auto; padding: 22px 16px 30px; display: grid; grid-template-columns: minmax(350px, 730px) 1fr; gap: 26px; align-items: start; }
+        @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } :root { --fh: 40px; } }
+
+
+
+        /* ============ Escenario ============ */
+        .stage {
+            position: relative; overflow: hidden; border-radius: 28px; padding: 14px 14px 0;
+            background: linear-gradient(180deg, #a9e2dc 0%, #d4f1ee 38%, #eef9f8 70%, #f8fafc 100%);
+            border: 1px solid #b6dad6; box-shadow: 0 18px 40px -12px rgba(11,37,69,.3);
+        }
+        .stage-head { position: relative; z-index: 5; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .stage-head .icon-3d-box { width: 38px; height: 38px; border-radius: 12px; font-size: 16px; }
+        .stage-head h2 { font-size: 16px; font-weight: 800; color: var(--navy); line-height: 1.2; }
+        .stage-head p { margin: 2px 0 0; font-size: 12.5px; color: #3b5a73; }
+
+        .sun { position: absolute; top: 22px; right: 26px; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff7d1, #fde68a 55%, #fbbf24); box-shadow: 0 0 0 10px rgba(253,230,138,.25), 0 0 50px 14px rgba(253,230,138,.45); }
+        .cloud { position: absolute; height: 18px; width: 70px; background: rgba(255,255,255,.85); border-radius: 99px; filter: blur(.3px); animation: drift linear infinite; }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+        .cloud::before { width: 30px; height: 30px; left: 10px; top: -14px; }
+        .cloud::after { width: 22px; height: 22px; left: 36px; top: -9px; }
+        .c1 { top: 90px; left: -90px; animation-duration: 70s; }
+        .c2 { top: 210px; left: -90px; animation-duration: 95s; animation-delay: -40s; transform: scale(.8); }
+        .c3 { top: 340px; left: -90px; animation-duration: 120s; animation-delay: -75s; transform: scale(1.1); opacity: .7; }
+        @keyframes drift { to { margin-left: 1500px; } }
+
+        .scene { position: relative; z-index: 2; display: grid; grid-template-columns: 96px 1fr 130px; grid-template-areas: "zone bld rzone" "ground ground ground" "soil under soilr"; margin: 0 -14px; padding: 0 14px 0 8px; }
+        .skyline { position: absolute; left: 0; right: 0; bottom: calc(var(--fh) + 16px); height: 520px; z-index: -1; pointer-events: none; opacity: .85;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 440' preserveAspectRatio='none'%3E%3Cg fill='%2386c3bd' opacity='.75'%3E%3Crect x='0' y='100' width='70' height='340'/%3E%3Crect x='66' y='50' width='60' height='390'/%3E%3Crect x='122' y='130' width='64' height='310'/%3E%3Crect x='182' y='80' width='56' height='360'/%3E%3Crect x='240' y='160' width='70' height='280'/%3E%3Crect x='306' y='110' width='50' height='330'/%3E%3Crect x='352' y='180' width='80' height='260'/%3E%3Crect x='430' y='100' width='56' height='340'/%3E%3Crect x='490' y='150' width='52' height='290'/%3E%3Crect x='540' y='70' width='60' height='370'/%3E%3Crect x='596' y='140' width='56' height='300'/%3E%3Crect x='650' y='60' width='50' height='380'/%3E%3Crect x='700' y='120' width='52' height='320'/%3E%3Crect x='748' y='40' width='52' height='400'/%3E%3C/g%3E%3Cg fill='%2362aaa4'%3E%3Crect x='0' y='160' width='58' height='280'/%3E%3Crect x='54' y='80' width='52' height='360'/%3E%3Crect x='102' y='200' width='62' height='240'/%3E%3Crect x='160' y='120' width='50' height='320'/%3E%3Crect x='210' y='230' width='58' height='210'/%3E%3Crect x='268' y='180' width='44' height='260'/%3E%3Crect x='308' y='260' width='70' height='180'/%3E%3Crect x='382' y='160' width='50' height='280'/%3E%3Crect x='436' y='240' width='58' height='200'/%3E%3Crect x='498' y='180' width='40' height='260'/%3E%3Crect x='538' y='250' width='52' height='190'/%3E%3Crect x='586' y='110' width='48' height='330'/%3E%3Crect x='630' y='200' width='60' height='240'/%3E%3Crect x='690' y='130' width='50' height='310'/%3E%3Crect x='738' y='220' width='62' height='220'/%3E%3C/g%3E%3Cg fill='%23ffffff' opacity='.45'%3E%3Crect x='9' y='176' width='5' height='8'/%3E%3Crect x='43' y='176' width='5' height='8'/%3E%3Crect x='9' y='202' width='5' height='8'/%3E%3Crect x='43' y='202' width='5' height='8'/%3E%3Crect x='9' y='228' width='5' height='8'/%3E%3Crect x='43' y='228' width='5' height='8'/%3E%3Crect x='9' y='254' width='5' height='8'/%3E%3Crect x='43' y='254' width='5' height='8'/%3E%3Crect x='9' y='280' width='5' height='8'/%3E%3Crect x='43' y='280' width='5' height='8'/%3E%3Crect x='9' y='306' width='5' height='8'/%3E%3Crect x='43' y='306' width='5' height='8'/%3E%3Crect x='9' y='332' width='5' height='8'/%3E%3Crect x='43' y='332' width='5' height='8'/%3E%3Crect x='9' y='358' width='5' height='8'/%3E%3Crect x='43' y='358' width='5' height='8'/%3E%3Crect x='9' y='384' width='5' height='8'/%3E%3Crect x='43' y='384' width='5' height='8'/%3E%3Crect x='9' y='410' width='5' height='8'/%3E%3Crect x='43' y='410' width='5' height='8'/%3E%3Crect x='63' y='96' width='5' height='8'/%3E%3Crect x='91' y='96' width='5' height='8'/%3E%3Crect x='63' y='122' width='5' height='8'/%3E%3Crect x='91' y='122' width='5' height='8'/%3E%3Crect x='63' y='148' width='5' height='8'/%3E%3Crect x='91' y='148' width='5' height='8'/%3E%3Crect x='63' y='174' width='5' height='8'/%3E%3Crect x='91' y='174' width='5' height='8'/%3E%3Crect x='63' y='200' width='5' height='8'/%3E%3Crect x='91' y='200' width='5' height='8'/%3E%3Crect x='63' y='226' width='5' height='8'/%3E%3Crect x='91' y='226' width='5' height='8'/%3E%3Crect x='63' y='252' width='5' height='8'/%3E%3Crect x='91' y='252' width='5' height='8'/%3E%3Crect x='63' y='278' width='5' height='8'/%3E%3Crect x='91' y='278' width='5' height='8'/%3E%3Crect x='63' y='304' width='5' height='8'/%3E%3Crect x='91' y='304' width='5' height='8'/%3E%3Crect x='63' y='330' width='5' height='8'/%3E%3Crect x='91' y='330' width='5' height='8'/%3E%3Crect x='63' y='356' width='5' height='8'/%3E%3Crect x='91' y='356' width='5' height='8'/%3E%3Crect x='63' y='382' width='5' height='8'/%3E%3Crect x='91' y='382' width='5' height='8'/%3E%3Crect x='63' y='408' width='5' height='8'/%3E%3Crect x='91' y='408' width='5' height='8'/%3E%3Crect x='111' y='216' width='5' height='8'/%3E%3Crect x='149' y='216' width='5' height='8'/%3E%3Crect x='111' y='242' width='5' height='8'/%3E%3Crect x='149' y='242' width='5' height='8'/%3E%3Crect x='111' y='268' width='5' height='8'/%3E%3Crect x='149' y='268' width='5' height='8'/%3E%3Crect x='111' y='294' width='5' height='8'/%3E%3Crect x='149' y='294' width='5' height='8'/%3E%3Crect x='111' y='320' width='5' height='8'/%3E%3Crect x='149' y='320' width='5' height='8'/%3E%3Crect x='111' y='346' width='5' height='8'/%3E%3Crect x='149' y='346' width='5' height='8'/%3E%3Crect x='111' y='372' width='5' height='8'/%3E%3Crect x='149' y='372' width='5' height='8'/%3E%3Crect x='111' y='398' width='5' height='8'/%3E%3Crect x='149' y='398' width='5' height='8'/%3E%3Crect x='169' y='136' width='5' height='8'/%3E%3Crect x='195' y='136' width='5' height='8'/%3E%3Crect x='169' y='162' width='5' height='8'/%3E%3Crect x='195' y='162' width='5' height='8'/%3E%3Crect x='169' y='188' width='5' height='8'/%3E%3Crect x='195' y='188' width='5' height='8'/%3E%3Crect x='169' y='214' width='5' height='8'/%3E%3Crect x='195' y='214' width='5' height='8'/%3E%3Crect x='169' y='240' width='5' height='8'/%3E%3Crect x='195' y='240' width='5' height='8'/%3E%3Crect x='169' y='266' width='5' height='8'/%3E%3Crect x='195' y='266' width='5' height='8'/%3E%3Crect x='169' y='292' width='5' height='8'/%3E%3Crect x='195' y='292' width='5' height='8'/%3E%3Crect x='169' y='318' width='5' height='8'/%3E%3Crect x='195' y='318' width='5' height='8'/%3E%3Crect x='169' y='344' width='5' height='8'/%3E%3Crect x='195' y='344' width='5' height='8'/%3E%3Crect x='169' y='370' width='5' height='8'/%3E%3Crect x='195' y='370' width='5' height='8'/%3E%3Crect x='169' y='396' width='5' height='8'/%3E%3Crect x='195' y='396' width='5' height='8'/%3E%3Crect x='219' y='246' width='5' height='8'/%3E%3Crect x='253' y='246' width='5' height='8'/%3E%3Crect x='219' y='272' width='5' height='8'/%3E%3Crect x='253' y='272' width='5' height='8'/%3E%3Crect x='219' y='298' width='5' height='8'/%3E%3Crect x='253' y='298' width='5' height='8'/%3E%3Crect x='219' y='324' width='5' height='8'/%3E%3Crect x='253' y='324' width='5' height='8'/%3E%3Crect x='219' y='350' width='5' height='8'/%3E%3Crect x='253' y='350' width='5' height='8'/%3E%3Crect x='219' y='376' width='5' height='8'/%3E%3Crect x='253' y='376' width='5' height='8'/%3E%3Crect x='219' y='402' width='5' height='8'/%3E%3Crect x='253' y='402' width='5' height='8'/%3E%3Crect x='277' y='196' width='5' height='8'/%3E%3Crect x='277' y='222' width='5' height='8'/%3E%3Crect x='277' y='248' width='5' height='8'/%3E%3Crect x='277' y='274' width='5' height='8'/%3E%3Crect x='277' y='300' width='5' height='8'/%3E%3Crect x='277' y='326' width='5' height='8'/%3E%3Crect x='277' y='352' width='5' height='8'/%3E%3Crect x='277' y='378' width='5' height='8'/%3E%3Crect x='277' y='404' width='5' height='8'/%3E%3Crect x='317' y='276' width='5' height='8'/%3E%3Crect x='363' y='276' width='5' height='8'/%3E%3Crect x='317' y='302' width='5' height='8'/%3E%3Crect x='363' y='302' width='5' height='8'/%3E%3Crect x='317' y='328' width='5' height='8'/%3E%3Crect x='363' y='328' width='5' height='8'/%3E%3Crect x='317' y='354' width='5' height='8'/%3E%3Crect x='363' y='354' width='5' height='8'/%3E%3Crect x='317' y='380' width='5' height='8'/%3E%3Crect x='363' y='380' width='5' height='8'/%3E%3Crect x='317' y='406' width='5' height='8'/%3E%3Crect x='363' y='406' width='5' height='8'/%3E%3Crect x='391' y='176' width='5' height='8'/%3E%3Crect x='417' y='176' width='5' height='8'/%3E%3Crect x='391' y='202' width='5' height='8'/%3E%3Crect x='417' y='202' width='5' height='8'/%3E%3Crect x='391' y='228' width='5' height='8'/%3E%3Crect x='417' y='228' width='5' height='8'/%3E%3Crect x='391' y='254' width='5' height='8'/%3E%3Crect x='417' y='254' width='5' height='8'/%3E%3Crect x='391' y='280' width='5' height='8'/%3E%3Crect x='417' y='280' width='5' height='8'/%3E%3Crect x='391' y='306' width='5' height='8'/%3E%3Crect x='417' y='306' width='5' height='8'/%3E%3Crect x='391' y='332' width='5' height='8'/%3E%3Crect x='417' y='332' width='5' height='8'/%3E%3Crect x='391' y='358' width='5' height='8'/%3E%3Crect x='417' y='358' width='5' height='8'/%3E%3Crect x='391' y='384' width='5' height='8'/%3E%3Crect x='417' y='384' width='5' height='8'/%3E%3Crect x='391' y='410' width='5' height='8'/%3E%3Crect x='417' y='410' width='5' height='8'/%3E%3Crect x='445' y='256' width='5' height='8'/%3E%3Crect x='479' y='256' width='5' height='8'/%3E%3Crect x='445' y='282' width='5' height='8'/%3E%3Crect x='479' y='282' width='5' height='8'/%3E%3Crect x='445' y='308' width='5' height='8'/%3E%3Crect x='479' y='308' width='5' height='8'/%3E%3Crect x='445' y='334' width='5' height='8'/%3E%3Crect x='479' y='334' width='5' height='8'/%3E%3Crect x='445' y='360' width='5' height='8'/%3E%3Crect x='479' y='360' width='5' height='8'/%3E%3Crect x='445' y='386' width='5' height='8'/%3E%3Crect x='479' y='386' width='5' height='8'/%3E%3Crect x='445' y='412' width='5' height='8'/%3E%3Crect x='479' y='412' width='5' height='8'/%3E%3Crect x='507' y='196' width='5' height='8'/%3E%3Crect x='507' y='222' width='5' height='8'/%3E%3Crect x='507' y='248' width='5' height='8'/%3E%3Crect x='507' y='274' width='5' height='8'/%3E%3Crect x='507' y='300' width='5' height='8'/%3E%3Crect x='507' y='326' width='5' height='8'/%3E%3Crect x='507' y='352' width='5' height='8'/%3E%3Crect x='507' y='378' width='5' height='8'/%3E%3Crect x='507' y='404' width='5' height='8'/%3E%3Crect x='547' y='266' width='5' height='8'/%3E%3Crect x='575' y='266' width='5' height='8'/%3E%3Crect x='547' y='292' width='5' height='8'/%3E%3Crect x='575' y='292' width='5' height='8'/%3E%3Crect x='547' y='318' width='5' height='8'/%3E%3Crect x='575' y='318' width='5' height='8'/%3E%3Crect x='547' y='344' width='5' height='8'/%3E%3Crect x='575' y='344' width='5' height='8'/%3E%3Crect x='547' y='370' width='5' height='8'/%3E%3Crect x='575' y='370' width='5' height='8'/%3E%3Crect x='547' y='396' width='5' height='8'/%3E%3Crect x='575' y='396' width='5' height='8'/%3E%3Crect x='595' y='126' width='5' height='8'/%3E%3Crect x='595' y='152' width='5' height='8'/%3E%3Crect x='595' y='178' width='5' height='8'/%3E%3Crect x='595' y='204' width='5' height='8'/%3E%3Crect x='595' y='230' width='5' height='8'/%3E%3Crect x='595' y='256' width='5' height='8'/%3E%3Crect x='595' y='282' width='5' height='8'/%3E%3Crect x='595' y='308' width='5' height='8'/%3E%3Crect x='595' y='334' width='5' height='8'/%3E%3Crect x='595' y='360' width='5' height='8'/%3E%3Crect x='595' y='386' width='5' height='8'/%3E%3Crect x='595' y='412' width='5' height='8'/%3E%3Crect x='639' y='216' width='5' height='8'/%3E%3Crect x='675' y='216' width='5' height='8'/%3E%3Crect x='639' y='242' width='5' height='8'/%3E%3Crect x='675' y='242' width='5' height='8'/%3E%3Crect x='639' y='268' width='5' height='8'/%3E%3Crect x='675' y='268' width='5' height='8'/%3E%3Crect x='639' y='294' width='5' height='8'/%3E%3Crect x='675' y='294' width='5' height='8'/%3E%3Crect x='639' y='320' width='5' height='8'/%3E%3Crect x='675' y='320' width='5' height='8'/%3E%3Crect x='639' y='346' width='5' height='8'/%3E%3Crect x='675' y='346' width='5' height='8'/%3E%3Crect x='639' y='372' width='5' height='8'/%3E%3Crect x='675' y='372' width='5' height='8'/%3E%3Crect x='639' y='398' width='5' height='8'/%3E%3Crect x='675' y='398' width='5' height='8'/%3E%3Crect x='699' y='146' width='5' height='8'/%3E%3Crect x='725' y='146' width='5' height='8'/%3E%3Crect x='699' y='172' width='5' height='8'/%3E%3Crect x='725' y='172' width='5' height='8'/%3E%3Crect x='699' y='198' width='5' height='8'/%3E%3Crect x='725' y='198' width='5' height='8'/%3E%3Crect x='699' y='224' width='5' height='8'/%3E%3Crect x='725' y='224' width='5' height='8'/%3E%3Crect x='699' y='250' width='5' height='8'/%3E%3Crect x='725' y='250' width='5' height='8'/%3E%3Crect x='699' y='276' width='5' height='8'/%3E%3Crect x='725' y='276' width='5' height='8'/%3E%3Crect x='699' y='302' width='5' height='8'/%3E%3Crect x='725' y='302' width='5' height='8'/%3E%3Crect x='699' y='328' width='5' height='8'/%3E%3Crect x='725' y='328' width='5' height='8'/%3E%3Crect x='699' y='354' width='5' height='8'/%3E%3Crect x='725' y='354' width='5' height='8'/%3E%3Crect x='699' y='380' width='5' height='8'/%3E%3Crect x='725' y='380' width='5' height='8'/%3E%3Crect x='699' y='406' width='5' height='8'/%3E%3Crect x='725' y='406' width='5' height='8'/%3E%3Crect x='747' y='236' width='5' height='8'/%3E%3Crect x='785' y='236' width='5' height='8'/%3E%3Crect x='747' y='262' width='5' height='8'/%3E%3Crect x='785' y='262' width='5' height='8'/%3E%3Crect x='747' y='288' width='5' height='8'/%3E%3Crect x='785' y='288' width='5' height='8'/%3E%3Crect x='747' y='314' width='5' height='8'/%3E%3Crect x='785' y='314' width='5' height='8'/%3E%3Crect x='747' y='340' width='5' height='8'/%3E%3Crect x='785' y='340' width='5' height='8'/%3E%3Crect x='747' y='366' width='5' height='8'/%3E%3Crect x='785' y='366' width='5' height='8'/%3E%3Crect x='747' y='392' width='5' height='8'/%3E%3Crect x='785' y='392' width='5' height='8'/%3E%3C/g%3E%3C/svg%3E") left bottom / 100% 100% no-repeat; }
+        .bld { grid-area: bld; min-width: 0; }
+        .row3 { display: grid; grid-template-columns: var(--lcol) 1fr var(--depth); }
+
+        /* Azotea */
+        .roofrow { height: calc(var(--rise) + 76px); position: relative; }
+        .roofbox { grid-column: 2; grid-row: 1; position: relative; display: flex; align-items: flex-end; justify-content: center; padding-bottom: var(--rise); }
+        .rooftop { grid-column: 2 / 4; grid-row: 1; align-self: end; height: var(--rise); background: linear-gradient(180deg, #f1f5f9, #b3bfce); clip-path: polygon(0 100%, calc(100% - var(--depth)) 100%, 100% 0, var(--depth) 0); }
+        .parapet { position: absolute; left: 0; right: 0; bottom: var(--rise); height: 7px; z-index: 3; background: linear-gradient(180deg, #e2e8f0, #94a3b8); border-top: 1px solid #fff; border-left: 3px solid #8b9bb0; box-shadow: 0 2px 3px rgba(0,0,0,.25); }
+        .unit { position: absolute; bottom: calc(var(--rise) + 5px); height: 20px; z-index: 2; background: linear-gradient(180deg, #eef2f6, #9aa8b8); border: 1px solid #64748b; border-radius: 2px; }
+        .unit::after { content: ''; position: absolute; left: 50%; top: 50%; width: 11px; height: 11px; margin: -5px 0 0 -5px; border-radius: 50%; background: radial-gradient(circle, #475569 0 2px, #94a3b8 3px 5px, #334155 6px); }
+        .unit.u1 { left: 62px; width: 36px; }
+        .unit.u2 { right: 66px; width: 42px; }
+        .mroom { position: absolute; left: 106px; bottom: calc(var(--rise) + 5px); width: 26px; height: 28px; z-index: 2; background: linear-gradient(90deg, #dbe3ec, #9aa8b8); border: 1px solid #64748b; border-radius: 2px 2px 0 0; }
+        .roof-sign { position: relative; z-index: 4; display: flex; align-items: center; gap: 8px; padding: 7px 14px; margin-bottom: 8px; border-radius: 10px; background: linear-gradient(135deg, var(--blue-medium), var(--navy)); color: #fff; font: 800 12.5px var(--font-head); border: 2px solid var(--teal-light); box-shadow: 0 0 18px rgba(0,168,150,.55); animation: glow 3.5s ease-in-out infinite; }
+        .roof-sign i { color: var(--teal-light); }
+        @keyframes glow { 50% { box-shadow: 0 0 6px rgba(0,168,150,.3); } }
+        .antenna { position: absolute; right: 22px; bottom: var(--rise); width: 3px; height: 52px; z-index: 2; background: linear-gradient(#cbd5e1, #64748b); }
+        .antenna::before { content: ''; position: absolute; left: -7px; top: 14px; width: 17px; height: 2px; background: #94a3b8; box-shadow: 0 9px 0 -0px #94a3b8; }
+        .antenna::after { content: ''; position: absolute; top: -5px; left: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px 3px rgba(239,68,68,.7); animation: blink 1.6s steps(2) infinite; }
+        @keyframes blink { 50% { opacity: .15; } }
+        .tank { position: absolute; left: 20px; bottom: calc(var(--rise) + 5px); width: 30px; height: 24px; z-index: 2; border-radius: 8px 8px 2px 2px; background: repeating-linear-gradient(90deg, #e2e8f0 0 5px, #aab6c6 5px 7px); border: 1px solid #64748b; }
+        .tank::after { content: ''; position: absolute; left: 4px; right: 4px; bottom: -5px; height: 5px; background: #64748b; }
+
+        /* Pisos */
+        .floors { position: relative; }
+        .floor { width: 100%; height: var(--fh); border: 0; background: none; padding: 0; text-align: left; position: relative; }
+        .fnum {
+            align-self: center; justify-self: start; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+            font: 800 13px var(--font-head); color: #fff;
+            background: linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,0)), linear-gradient(135deg, var(--blue-medium), var(--navy));
+            box-shadow: 0 6px 12px -3px rgba(11,37,69,.45), inset 0 2px 2px rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.35);
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+        }
+        .fbody {
+            position: relative; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 0; min-width: 0;
+            background: linear-gradient(180deg, #e8edf3 0%, #cfd8e3 100%); border-left: 3px solid #8b9bb0;
+            box-shadow: inset 0 3px 0 rgba(255,255,255,.75), inset 0 -4px 0 #aab6c6, inset 0 -5px 0 rgba(0,0,0,.2);
+            transition: filter .2s, box-shadow .2s;
+        }
+        .fside { position: relative; transform: skewY(-29.74deg); transform-origin: left top; background: linear-gradient(90deg, #8ea0b5, #5c6f85); box-shadow: inset 0 -4px 0 #6a7c92, inset 0 3px 0 rgba(255,255,255,.35); }
+        .fside::before { content: ''; position: absolute; inset: 24% 12% 30% 12%; border-radius: 1px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 1px, transparent 1px 8px), linear-gradient(90deg, #2d5273, #4b7396); box-shadow: 0 0 0 1px rgba(15,23,42,.45); }
+        .stair {
+            align-self: stretch; width: 34px; flex: none; background-color: var(--blue-medium); position: relative;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 42' preserveAspectRatio='none'%3E%3Cpolyline points='3,38 3,31 11,31 11,23 19,23 19,15 27,15 27,7 32,7' fill='none' stroke='rgba(255,255,255,.55)' stroke-width='2'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+        }
+        /* Escalera del lado derecho: espejo de la izquierda, pegada al borde derecho del piso */
+        .stair.stair-r { margin-right: -8px; transform: scaleX(-1); }
+        .wins { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; height: 64%; min-width: 0; padding: 2px; background: #3f4d5f; border-radius: 2px; box-shadow: inset 0 0 0 1px #2b3644, 0 1px 0 rgba(255,255,255,.6); }
+        .wins { position: relative; }
+        .symlab { position: absolute; left: 2px; right: 2px; top: 2px; bottom: 2px; width: calc(100% - 4px); height: calc(100% - 4px); z-index: 3; pointer-events: none; overflow: visible; }
+        .symlab text { font: 900 19px var(--font-head, 'Arial Black', Arial, sans-serif); fill: #fff; stroke: #0f2a43; stroke-width: .9; paint-order: stroke fill; }
+        .win { position: relative; overflow: hidden; background: linear-gradient(165deg, #d8edf7 0%, #8fbdd3 30%, #4f7f9f 62%, #7fb0c9 100%); transition: background .4s, box-shadow .4s; }
+        .win::before { content: ''; position: absolute; left: 0; right: 0; top: 42%; height: 1px; background: rgba(30,41,59,.45); }
+        .win::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.5) 0 28%, transparent 29%); }
+        .floor.has .win { background: linear-gradient(165deg, #c9fff3 0%, #4de3cf 35%, var(--teal-light) 65%, var(--teal-dark) 100%); box-shadow: 0 0 8px rgba(0,168,150,.6); animation: twinkle 5s ease-in-out infinite; animation-delay: var(--d, 0s); }
+        .floor.done .win { background: linear-gradient(165deg, #d1fae5 0%, #6ee7b7 35%, var(--green) 70%, #047857 100%); box-shadow: 0 0 8px rgba(16,185,129,.6); }
+        @keyframes twinkle { 50% { filter: brightness(1.18); box-shadow: 0 0 12px rgba(0,168,150,.85); } }
+
+        /* Siluetas de personas caminando detrás de los vidrios (pisos 1, 9, 10 y 11) */
+        .win::before { z-index: 1; }
+        .sil { position: absolute; bottom: -1px; left: -30%; height: 82%; aspect-ratio: 20 / 48; z-index: 0; opacity: .82; pointer-events: none;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 48'%3E%3Ccircle cx='10' cy='6' r='5' fill='%230f2a43'/%3E%3Cpath d='M4 14 Q10 11 16 14 L17 32 L13 32 L12 47 L8 47 L7 32 L3 32 Z' fill='%230f2a43'/%3E%3C/svg%3E") center / contain no-repeat;
+            transition: opacity .4s; animation: silwalk var(--sd, 10s) linear var(--sl, 0s) infinite alternate, silbob .56s ease-in-out infinite; }
+        .scene.evac .sil { opacity: 0; }
+        @keyframes silwalk { from { left: -30%; } to { left: 100%; } }
+        @keyframes silbob { 50% { translate: 0 -1.5px; } }
+        .glare { position: absolute; left: calc(var(--lcol) + 37px); right: var(--depth); top: 0; bottom: 0; pointer-events: none; z-index: 2; background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,.2) 30%, rgba(255,255,255,.04) 38%, transparent 46%, rgba(255,255,255,.13) 62%, transparent 70%); }
+        .fcount { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; color: #fff; background: linear-gradient(180deg, var(--blue-medium), var(--navy)); border-radius: 99px; padding: 3px 8px; box-shadow: 0 2px 0 var(--navy-dark), inset 0 1px 1px rgba(255,255,255,.35); }
+        .floor.done .fcount { background: linear-gradient(180deg, #34d399, #059669); box-shadow: 0 2px 0 #047857, inset 0 1px 1px rgba(255,255,255,.4); }
+        .floor.empty .fcount { background: #cbd5e1; color: #64748b; box-shadow: none; }
+
+
+        .floor.base::before { background: #0f172a; box-shadow: none; }
+
+        .floor:hover .fbody { filter: brightness(1.07); }
+        .floor:hover .fnum { transform: translateY(-2px) scale(1.1); }
+        .floor.sel { z-index: 3; }
+        .floor.sel .fbody { box-shadow: inset 0 0 0 3px var(--amber), 0 0 24px rgba(245,158,11,.6); }
+        .floor.sel .fnum { background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,0)), linear-gradient(135deg, var(--teal-light), var(--teal)); transform: scale(1.12); }
+        .floor.dim .fbody, .floor.dim .fside { filter: grayscale(.8) opacity(.55); }
+        .floor.match .fbody { box-shadow: inset 0 0 0 3px var(--teal-light), 0 0 18px rgba(0,168,150,.6); }
+        .floor.pass .fbody { box-shadow: inset 0 0 0 3px var(--green), 0 0 20px rgba(16,185,129,.7); }
+
+        /* Piso 1: entrada principal */
+        .urg-sign { flex: none; position: relative; z-index: 2; font: 800 8px/1.1 var(--font-head); letter-spacing: .04em; text-align: center; color: #fff; background: linear-gradient(180deg, var(--teal-light), var(--teal)); padding: 4px 6px; border-radius: 5px; border: 1px solid rgba(255,255,255,.7); box-shadow: 0 0 10px rgba(0,168,150,.7), 0 2px 0 var(--teal-dark); }
+        .door { flex: none; width: 36px; height: 86%; align-self: flex-end; position: relative; background: linear-gradient(135deg, #bfe3f0 0%, #6aa3be 55%, #9ccbe0 100%); border: 3px solid #2d3a4b; border-bottom: 0; border-radius: 3px 3px 0 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.5); }
+        .door::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.55) 0 30%, transparent 31%); }
+        .door::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #2d3a4b; }
+        .floor.one .fbody::before { content: ''; position: absolute; left: 34px; right: 34px; top: 0; height: 5px; z-index: 1; background: linear-gradient(#6b7a8f, #475569); box-shadow: 0 3px 4px rgba(0,0,0,.35); }
+        .floor.one .wins { grid-template-columns: repeat(2, 1fr); }
+
+        /* Parqueaderos (pisos 2 a 7 y mitad del 8) */
+        .floor.park .fbody { background: linear-gradient(180deg, #d9dee5, #bcc5d0); }
+        .deck { flex: 1; display: flex; align-items: stretch; height: 72%; min-width: 0; position: relative; overflow: hidden; background: linear-gradient(180deg, #232b36 0%, #4a5461 100%); box-shadow: inset 0 4px 6px rgba(0,0,0,.55), 0 -2px 0 #8b9bb0; }
+        .deck::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: repeating-linear-gradient(90deg, #cbd5e1 0 6px, #94a3b8 6px 8px); }
+        .slot { flex: 1; display: flex; align-items: flex-end; justify-content: center; position: relative; padding-bottom: 5px; }
+        .slot + .slot::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(90deg, #cbd5e1, #8b9bb0); }
+        .car { width: 76%; height: auto; max-height: 100%; filter: drop-shadow(0 1px 1px rgba(0,0,0,.55)); }
+        .slot:nth-child(5n+1) .car { color: #e5e7eb; } .slot:nth-child(5n+2) .car { color: #b91c1c; } .slot:nth-child(5n+3) .car { color: #94a3b8; }
+        .slot:nth-child(5n+4) .car { color: #1d4ed8; } .slot:nth-child(5n+5) .car { color: #fbbf24; }
+        .slot:nth-child(even) .car { transform: scaleX(-1); }
+        .floor.half .deck { flex: 1.1; }
+        .floor.half .wins { grid-template-columns: repeat(3, 1fr); flex: 1; }
+        .floor.park .fside::before { display: none; }
+        .floor.park .fcount { color: #475569; font-size: 14px; background: none; box-shadow: none; padding: 0 2px; }
+        .floor.park.sel .fcount, .floor.park .fcount i { color: var(--blue-medium); }
+
+        /* Sótano */
+        .under { grid-area: under; min-width: 0; }
+        .floor.base .fbody { background: linear-gradient(180deg, #4b5563, #1f2937); border-left-color: #0f172a; box-shadow: inset 0 3px 0 rgba(255,255,255,.12), inset 0 -3px 0 #0b1220; color: #cbd5e1; }
+        .floor.base .fside { transform: none; background: #0f172a; box-shadow: none; }
+        .floor.base .fside::before { display: none; }
+        .floor.base .stair { background-color: #0f172a; }
+        .floor.base .base-info { color: #fff; font-size: 13px; font-weight: 700; }
+        .base-info svg { height: calc(var(--fh) * .66); width: auto; flex: none; }
+        .base-info { flex: 1; display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; }
+        .base-info i { color: #94a3b8; font-size: 14px; }
+        .soil, .soilr { grid-area: soil; background: linear-gradient(180deg, #64748b, #334155); border-bottom: 2px solid #0f172a; }
+        .soilr { grid-area: soilr; }
+
+        /* Flujo de evacuación por la escalera */
+        .flow { position: absolute; left: var(--lcol); top: 0; bottom: 0; width: 34px; pointer-events: none; z-index: 1; opacity: .38;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='28'%3E%3Cpath d='M10 9 L17 17 L24 9' fill='none' stroke='%2334d399' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            animation: down 1.6s linear infinite; }
+        .flow.flow-r { left: auto; right: var(--depth); }
+        @keyframes down { to { background-position-y: 28px; } }
+
+        /* Suelo y punto de encuentro */
+        .ground { grid-area: ground; height: 16px; position: relative; background: linear-gradient(180deg, #86efac, #22c55e 60%, #15803d); border-top: 2px solid #15803d; }
+        .ground::after { content: ''; position: absolute; left: 0; right: 0; top: 3px; height: 8px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='8'%3E%3Cpath d='M22 1 L15 4 L22 7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' opacity='.85'/%3E%3C/svg%3E"); animation: path 1.4s linear infinite; }
+        @keyframes path { to { background-position-x: -30px; } }
+        .zone { grid-area: zone; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 0; padding-right: 6px; position: relative; }
+        .zone-sign { position: relative; z-index: 2; text-align: center; background: linear-gradient(180deg, #34d399, #059669); color: #fff; border-radius: 10px; padding: 7px 6px; font: 700 11px/1.2 var(--font-head); width: 88px; border: 2px solid #fff; box-shadow: 0 6px 14px rgba(5,150,105,.45); }
+        .zone-sign .icon-3d-box { width: 28px; height: 28px; border-radius: 9px; font-size: 13px; margin-bottom: 4px; }
+        .zone-pole { width: 4px; height: 14px; background: #475569; }
+        .zone-people { display: flex; gap: 3px; color: var(--navy); font-size: 15px; height: 20px; align-items: flex-end; }
+        .zone-people i { animation: bob 1.8s ease-in-out infinite; }
+        .zone-people i:nth-child(2) { animation-delay: .3s; } .zone-people i:nth-child(3) { animation-delay: .6s; } .zone-people i:nth-child(4) { animation-delay: .9s; }
+        @keyframes bob { 50% { transform: translateY(-3px); } }
+        .zone.arrived .zone-sign { animation: arrive 0.7s ease-in-out 3; }
+        @keyframes arrive { 50% { transform: scale(1.12); box-shadow: 0 0 0 10px rgba(16,185,129,.35); } }
+        .tree { position: absolute; bottom: 0; left: 2px; color: #15803d; font-size: 26px; z-index: 1; }
+
+        /* Corredor de la simulación */
+        .runner { position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; z-index: 30; font-size: 11px; display: none; transition: transform .52s ease-in-out; will-change: transform; }
+        .runner.crowd { z-index: 29; }
+        .runner.moving { animation: walkbob .8s ease-in-out infinite; }
+        @keyframes walkbob { 50% { translate: 0 -1.5px; } }
+        /* Corredor con el logo de la Brigada (sale primero) */
+        .runner.brigade { width: 24px; height: 24px; margin: 0; z-index: 31; align-items: center; justify-content: center; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; color: var(--teal); font-size: 16px; box-shadow: none;
+            filter: drop-shadow(0 0 2px #fff) drop-shadow(0 3px 5px rgba(0,0,0,.45)); }
+        .runner.brigade img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+        /* Botón de evacuación general y alarma */
+        .stage-head { flex-wrap: wrap; }
+        .btn-head { margin: 0; align-self: center; padding: 13px 20px; font-size: 14px; border-radius: 14px; }
+        .btn-alarm { margin-left: auto; flex: none; border: 0; cursor: pointer; border-radius: 12px; padding: 9px 14px; font: 800 12.5px var(--font-head); color: #fff; display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(180deg, #f87171, #dc2626); box-shadow: 0 4px 0 #991b1b, 0 6px 12px rgba(220,38,38,.35); transition: transform .12s, box-shadow .12s; }
+        .btn-alarm:hover { filter: brightness(1.06); }
+        .btn-alarm:active { transform: translateY(3px); box-shadow: 0 1px 0 #991b1b, 0 2px 4px rgba(0,0,0,.2); }
+        .btn-alarm:disabled { opacity: .6; cursor: progress; }
+        .alarm-banner { position: relative; z-index: 6; display: none; align-items: center; gap: 10px; margin: 0 0 8px; padding: 9px 12px; border-radius: 12px; color: #fff; font: 800 13px/1.25 var(--font-head);
+            background: repeating-linear-gradient(135deg, #b91c1c 0 14px, #dc2626 14px 28px); border: 2px solid #fecaca; box-shadow: 0 0 18px rgba(239,68,68,.7); animation: alarmflash .8s steps(2) infinite; }
+        .alarm-banner.on { display: flex; }
+        .alarm-banner > div { flex: 1; min-width: 0; }
+        .alarm-banner small { display: block; margin-top: 2px; font-weight: 600; font-size: 11.5px; opacity: .95; }
+        .alarm-banner .bell { font-size: 20px; flex: none; transform-origin: 50% 10%; animation: ring .5s ease-in-out infinite; }
+        .alarm-banner .snd { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,.7); background: rgba(0,0,0,.25); color: #fff; cursor: pointer; font-size: 14px; }
+        @keyframes ring { 0%, 100% { transform: rotate(-18deg); } 50% { transform: rotate(18deg); } }
+        @keyframes alarmflash { 50% { filter: brightness(1.35); box-shadow: 0 0 6px rgba(239,68,68,.3); } }
+        .scene.alarm::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 25; box-shadow: inset 0 0 60px 10px rgba(239,68,68,.55); animation: vignette .8s ease-in-out infinite alternate; }
+        @keyframes vignette { from { opacity: .15; } to { opacity: 1; } }
+        .scene.alarm .floor .fbody { animation: fbalarm .8s steps(2) infinite; }
+        @keyframes fbalarm { 50% { box-shadow: inset 0 0 0 3px #ef4444, 0 0 16px rgba(239,68,68,.7); } }
+        .scene.alarm .roof-sign { background: linear-gradient(135deg, #dc2626, #7f1d1d); border-color: #fca5a5; animation: roofalarm .8s steps(2) infinite; }
+        .scene.alarm .roof-sign i { color: #fecaca; }
+        @keyframes roofalarm { 50% { box-shadow: 0 0 6px rgba(239,68,68,.3); } 0%, 100% { box-shadow: 0 0 22px rgba(239,68,68,.9); } }
+
+        .stage-foot { position: relative; z-index: 4; margin: 0 -14px; padding: 12px 18px 14px; background: rgba(255,255,255,.75); backdrop-filter: blur(8px); border-top: 1px solid #b6dad6; font-size: 12.5px; color: #334155; }
+        .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .sw { width: 16px; height: 11px; border-radius: 3px; display: inline-block; box-shadow: inset 0 1px 1px rgba(255,255,255,.7), inset 0 -1px 2px rgba(0,0,0,.2); }
+        .sw.a { background: linear-gradient(135deg, #99f6e4, var(--teal-light)); }
+        .sw.b { background: linear-gradient(135deg, #a7f3d0, var(--green)); }
+        .sw.d { background: linear-gradient(180deg, #64748b, #334155); }
+        .sw.c { background: linear-gradient(135deg, #dbeafe, #93a5bd); }
+        .sim-note { margin: 8px 0 0; min-height: 1.4em; font-weight: 600; color: var(--navy); }
+
+        /* ============ Panel de videos ============ */
+        .panel { min-width: 0; }
+        .search { position: relative; margin-bottom: 18px; }
+        .search i.lens { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--teal); }
+        .search input { width: 100%; padding: 13px 44px 13px 42px; border-radius: 16px; border: 1px solid #cbd5e1; background: #fff; font: 500 14px var(--font-body); box-shadow: inset 0 2px 4px rgba(0,0,0,.05); }
+        .search input:focus { outline: 2px solid var(--teal); border-color: transparent; }
+        .search .clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: #e2e8f0; width: 28px; height: 28px; border-radius: 50%; color: #475569; }
+
+        .p-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .bigfloor { width: 64px; height: 64px; border-radius: 20px; font: 800 28px var(--font-head); flex: none; }
+        .p-head h2 { font-size: clamp(22px, 3vw, 30px); font-weight: 800; color: var(--navy); letter-spacing: -.01em; }
+        .p-head p { margin: 4px 0 0; color: #475569; font-size: 14px; }
+        .p-head .grow { flex: 1; min-width: 180px; }
+        .stepper { display: flex; gap: 6px; }
+        .stepper button { width: 38px; height: 38px; border-radius: 12px; border: 1px solid #cbd5e1; background: #fff; color: var(--navy); }
+        .stepper button:hover:not(:disabled) { background: #e6f7f5; border-color: var(--teal); }
+        .stepper button:disabled { opacity: .35; cursor: default; }
+
+        .p-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 16px 0 18px; }
+        .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 99px; background: rgba(0,128,128,.1); color: var(--teal); border: 1px solid rgba(0,128,128,.2); }
+        .chip.g { background: rgba(16,185,129,.12); color: #047857; border-color: rgba(16,185,129,.3); }
+
+        /* Videos en filas */
+        .vlist { display: flex; flex-direction: column; gap: 14px; }
+        .vrow { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 12px; box-shadow: 0 4px 15px -2px rgba(11,37,69,.08); transition: transform .25s, box-shadow .25s; }
+        .vrow:hover { box-shadow: 0 16px 28px -6px rgba(11,37,69,.16); }
+        .vrow.warn { border-color: #fca5a5; box-shadow: 0 0 0 1px #fecaca, 0 4px 15px -2px rgba(239,68,68,.15); }
+        @media (max-width: 560px) { .vrow { grid-template-columns: 1fr; } }
+        .thumb { position: relative; border-radius: 14px; overflow: hidden; background: #0f172a; aspect-ratio: 16/10; cursor: pointer; border: 0; padding: 0; display: block; width: 100%; }
+        @media (max-width: 560px) { .thumb { aspect-ratio: 16/9; } }
+        .thumb video { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+        .thumb:hover video { transform: scale(1.05); }
+        .thumb .shade { position: absolute; inset: 0; background: rgba(8,28,54,.3); display: flex; align-items: center; justify-content: center; transition: background .2s; }
+        .thumb:hover .shade { background: rgba(8,28,54,.08); }
+        .thumb .play { width: 44px; height: 44px; border-radius: 50%; background: rgba(0,128,128,.92); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,.35); transition: transform .2s; }
+        .thumb:hover .play { transform: scale(1.12); }
+        .thumb .len { position: absolute; right: 7px; bottom: 7px; background: rgba(0,0,0,.72); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; }
+        .thumb .seen { position: absolute; left: 7px; top: 7px; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+        .thumb .missing { position: absolute; inset: 0; background: #0f172a; color: #fbbf24; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; padding: 8px; text-align: center; }
+        .thumb.nofile .missing { display: flex; }
+        .vinfo { display: flex; flex-direction: column; min-width: 0; padding: 2px 4px 2px 0; }
+        .vtop { display: flex; align-items: flex-start; gap: 12px; }
+        .vtop .icon-3d-box { width: 40px; height: 40px; border-radius: 13px; font-size: 17px; flex: none; }
+        .vtop h3 { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+        .vtop small { display: block; margin-top: 3px; font-size: 12.5px; color: #64748b; font-weight: 500; }
+        .vdesc { margin: 10px 0 0; font-size: 14.5px; line-height: 1.55; color: #475569; }
+        .vbot { margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .vtag { font-size: 12.5px; font-weight: 600; color: #475569; display: inline-flex; align-items: center; gap: 6px; }
+        .vtag.bad { color: #b91c1c; }
+        .floor-chip { display: inline-block; font-size: 11.5px; font-weight: 700; background: var(--navy); color: #fff; border-radius: 99px; padding: 2px 9px; margin-right: 6px; vertical-align: 1px; }
+
+        .empty-state { text-align: center; padding: 40px 20px; background: #fff; border: 2px dashed #cbd5e1; border-radius: 22px; }
+        .empty-state .icon-3d-box { width: 64px; height: 64px; border-radius: 20px; font-size: 26px; margin-bottom: 12px; background: linear-gradient(135deg, rgba(255,255,255,.4), rgba(255,255,255,.05)), #94a3b8; box-shadow: inset 0 2px 2px rgba(255,255,255,.8), inset 0 -2px 4px rgba(0,0,0,.15); }
+        .empty-state h3 { font-size: 17px; color: #334155; }
+        .empty-state p { margin: 6px auto 0; max-width: 360px; color: #64748b; font-size: 13.5px; }
+
+        .gold { margin-top: 20px; display: flex; gap: 12px; align-items: flex-start; background: #fffbeb; border: 1px solid #fde68a; border-radius: 18px; padding: 14px 16px; font-size: 13.5px; color: #78350f; line-height: 1.5; }
+        .gold .icon-3d-box { width: 36px; height: 36px; border-radius: 11px; font-size: 15px; flex: none; }
+        .gold b { color: #78350f; }
+
+        /* ============ Reproductor ============ */
+        .modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15,23,42,.82); backdrop-filter: blur(8px); }
+        .modal-card { background: #fff; width: 100%; max-width: 980px; max-height: 94dvh; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,.45); animation: pop .2s ease-out; }
+        @keyframes pop { from { opacity: 0; transform: scale(.97); } }
+        .m-head { background: linear-gradient(90deg, var(--navy), var(--blue-medium)); color: #fff; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(0,168,150,.35); }
+        .m-head .l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .m-head .icon-3d-box { width: 40px; height: 40px; border-radius: 13px; font-size: 16px; flex: none; }
+        .m-head h3 { font-size: 16px; font-weight: 700; line-height: 1.25; }
+        .m-head small { color: #5eead4; font-weight: 500; font-size: 12.5px; }
+        .m-close { width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; font-size: 16px; flex: none; }
+        .m-close:hover { background: rgba(255,255,255,.24); }
+        .m-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .m-player { position: relative; background: #000; border-radius: 18px; overflow: hidden; aspect-ratio: 16/9; border: 1px solid #1e293b; max-height: 62dvh; margin: 0 auto; width: 100%; }
+        .m-player video { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .m-error { position: absolute; inset: 0; background: #0f172a; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; gap: 8px; }
+        .m-error i { font-size: 30px; color: #fbbf24; }
+        .m-error code { font-size: 12px; color: #cbd5e1; }
+        .m-warn { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-weight: 700; font-size: 13.5px; border-radius: 14px; padding: 10px 14px; display: flex; gap: 10px; align-items: center; }
+        .m-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .m-nav .hint { font-size: 12px; color: #64748b; }
+        .m-desc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px 16px; }
+        .m-desc p { margin: 0; font-size: 14px; line-height: 1.6; color: #475569; }
+        .m-foot { background: #f1f5f9; border-top: 1px solid #e2e8f0; padding: 12px 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #64748b; }
+        .m-foot i { color: var(--teal); margin-right: 6px; }
+
+        footer.bottom { background: var(--navy-dark); color: #94a3b8; border-top: 1px solid #1e293b; padding: 20px 16px; font-size: 12.5px; }
+        footer.bottom .in { max-width: 2000px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; align-items: center; }
+        footer.bottom i { color: var(--teal-light); margin-right: 6px; }
+
+        @media (max-width: 560px) {
+            .top-stats { width: 100%; gap: 8px; }
+            .stat { padding: 6px 10px 6px 6px; flex: 1 1 calc(50% - 8px); }
+            .stat:first-child { flex-basis: 100%; }
+            .stat .icon-3d-box { width: 32px; height: 32px; font-size: 14px; }
+            .stat .bar { width: 80px; }
+            .stat b { font-size: 14px; }
+        }
+        @media (max-width: 480px) {
+            .scene { grid-template-columns: 74px 1fr 50px; }
+            .zone-sign { width: 70px; font-size: 9.5px; }
+            :root { --lcol: 34px; }
+            .unit, .mroom { display: none; }
+            .base-info { gap: 6px; font-size: 12px; }
+            .base-info svg { height: calc(var(--fh) * .5); }
+            .floor.base .base-info { font-size: 12px; }
+            .fnum { width: 26px; height: 26px; font-size: 12px; }
+        }
+
+        /* ===== Versión 2: mayor impacto visual ===== */
+        header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 4px; background: linear-gradient(90deg, var(--teal), var(--amber), var(--teal-light), var(--teal)); background-size: 200% 100%; animation: hslide 7s linear infinite; }
+        @keyframes hslide { to { background-position: 200% 0; } }
+        .brand h1 { background: linear-gradient(90deg, #fff, #99f6e4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+        .stage { animation: rise .7s ease-out both; }
+        .panel .search, .panel .p-head, .panel .p-meta, .gold { animation: rise .6s ease-out .15s both; }
+        .vrow { animation: rise .5s ease-out both; }
+        .vrow:nth-child(2) { animation-delay: .07s; } .vrow:nth-child(3) { animation-delay: .14s; } .vrow:nth-child(4) { animation-delay: .21s; } .vrow:nth-child(n+5) { animation-delay: .28s; }
+        .vrow:hover { border-color: var(--teal-light); }
+                .hud { position: absolute; top: 8px; left: 12px; z-index: 40; display: none; flex-wrap: wrap; align-items: center; gap: 2px 12px; max-width: 250px; padding: 9px 16px 10px; border-radius: 16px; color: #fff; font-family: var(--font-head);
+            background: linear-gradient(135deg, #7f1d1d, #dc2626); border: 2px solid #fecaca; box-shadow: 0 0 0 4px rgba(220,38,38,.35), 0 10px 26px rgba(0,0,0,.45); animation: hudpulse 1.2s ease-in-out infinite; }
+        .hud-l { flex-basis: 100%; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .92; }
+        .hud-t { font-size: 30px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 6px rgba(0,0,0,.4); }
+        .hud-n { font-size: 13px; font-weight: 800; color: #fde68a; }
+        .hud i { color: #fecaca; margin-right: 6px; }
+        .hud.ok { background: linear-gradient(135deg, #065f46, #10b981); border-color: #bbf7d0; box-shadow: 0 0 0 4px rgba(16,185,129,.4), 0 10px 26px rgba(0,0,0,.45); animation: none; }
+        .hud.ok .hud-n { color: #fff; }
+        @keyframes hudpulse { 50% { box-shadow: 0 0 0 9px rgba(220,38,38,.12), 0 10px 26px rgba(0,0,0,.45); } }
+        .hud.on { display: flex; }
+        .keys { margin-left: auto; opacity: .85; }
+        kbd { font: 700 11px var(--font-body); background: #fff; border: 1px solid #b6dad6; border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; }
+        body.present footer.bottom { display: none; }
+
+        /* ===== Simulaciones del panel: oficinas (piso 2) y parqueadero (pisos 3 a 7) ===== */
+        .sim { position: relative; height: 250px; overflow: hidden; border-radius: 22px; border: 1px solid #cbd5e1; box-shadow: 0 10px 24px -8px rgba(11,37,69,.25); }
+        .sim-title { position: absolute; left: 12px; top: 10px; z-index: 6; font: 800 12.5px var(--font-head); color: #fff; background: rgba(11,37,69,.85); padding: 5px 11px; border-radius: 99px; }
+        .sim-title i { color: #5eead4; margin-right: 6px; }
+        .sim-note { }
+        .sim-cap { margin: 12px 2px 0; font-size: 13.5px; color: #475569; line-height: 1.5; }
+        .sim-office { background: linear-gradient(180deg, #eaf4f8 0 62%, #cfd8e3 62%); }
+        .o-wall { position: absolute; left: 0; right: 0; top: 46px; display: flex; justify-content: space-around; align-items: center; }
+        .o-win { width: 17%; height: 62px; border-radius: 4px; background: linear-gradient(165deg, #d8edf7, #8fbdd3 55%, #4f7f9f); border: 3px solid #8b9bb0; }
+        .o-clock { font-size: 26px; color: #134074; animation: spin 60s linear infinite; }
+        .o-lights { position: absolute; left: 0; right: 0; top: 0; height: 8px; background: repeating-linear-gradient(90deg, #fff 0 60px, transparent 60px 120px); box-shadow: 0 0 14px 4px rgba(255,255,255,.8); }
+        .o-row { position: absolute; left: 4%; right: 4%; bottom: 46px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .o-desk { position: relative; width: 21%; height: 84px; }
+        .o-desk::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; border-radius: 4px; background: linear-gradient(180deg, #b08968, #8a6a4d); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+        .o-worker { position: absolute; left: 50%; bottom: 14px; margin-left: -17px; font-size: 38px; color: #134074; animation: typing 1.1s ease-in-out infinite; }
+        .o-desk:nth-child(2n) .o-worker { color: #008080; animation-delay: .3s; } .o-desk:nth-child(3n) .o-worker { color: #b45309; animation-delay: .6s; }
+        .o-mon { position: absolute; left: 50%; bottom: 12px; margin-left: -14px; font-size: 28px; color: #334155; z-index: 2; animation: screen 2.4s ease-in-out infinite; }
+        .o-walk { position: absolute; bottom: 20px; left: -8%; font-size: 40px; color: #0B2545; z-index: 3; animation: owalk 16s linear infinite; }
+        .o-walk.w2 { color: #008080; font-size: 36px; bottom: 26px; animation-duration: 22s; animation-delay: -9s; animation-direction: reverse; }
+        .o-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: linear-gradient(180deg, #94a3b8, #64748b); }
+        @keyframes typing { 50% { transform: translateY(2px); } }
+        @keyframes screen { 50% { color: #0f766e; filter: drop-shadow(0 0 6px rgba(45,212,191,.9)); } }
+        @keyframes owalk { to { left: 104%; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .sim-park { background: linear-gradient(180deg, #2b3440 0, #4a5461 100%); }
+        .p-ceil { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: linear-gradient(180deg, #8b9bb0, #5c6f85); }
+        .p-lamp { position: absolute; top: 12px; width: 46px; height: 5px; border-radius: 3px; background: #fef9c3; box-shadow: 0 0 18px 6px rgba(254,249,195,.55); }
+        .p-lane { position: absolute; left: 0; right: 0; top: 96px; height: 54px; background: #353d49; border-top: 3px solid #f59e0b; border-bottom: 3px solid #f59e0b; }
+        .p-lane::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: repeating-linear-gradient(90deg, #e5e7eb 0 22px, transparent 22px 46px); }
+        .p-car { position: absolute; width: 70px; height: 31px; z-index: 3; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+        .p-car.a { top: 100px; left: -80px; color: #b91c1c; animation: pdrive 9s linear infinite; }
+        .p-car.b { top: 122px; left: 105%; color: #1d4ed8; transform: scaleX(-1); animation: pdriveL 11s linear infinite; animation-delay: -4s; }
+        .p-car.c { top: 100px; left: -80px; color: #e5e7eb; animation: pdrive 14s linear infinite; animation-delay: -7s; }
+        .p-slots { position: absolute; left: 3%; right: 3%; bottom: 14px; height: 70px; display: flex; gap: 8px; }
+        .p-slot { flex: 1; position: relative; border: 2px solid #cbd5e1; border-top: 0; display: flex; align-items: flex-end; justify-content: center; }
+        .p-slot svg { width: 86%; height: auto; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+        .p-slot:nth-child(5n+1) svg { color: #94a3b8; } .p-slot:nth-child(5n+2) svg { color: #fbbf24; } .p-slot:nth-child(5n+3) svg { color: #e5e7eb; } .p-slot:nth-child(5n+4) svg { color: #0f766e; } .p-slot:nth-child(5n) svg { color: #7c3aed; }
+        .p-slot.empty::after { content: 'P'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 800 22px var(--font-head); color: rgba(255,255,255,.35); }
+        .p-slot.leave svg { animation: pleave 12s ease-in-out infinite; }
+        .p-brake { position: absolute; top: 12px; right: 8px; width: 8px; height: 5px; background: #ef4444; border-radius: 2px; animation: blink 1.4s steps(2) infinite; }
+        @keyframes pdrive { to { left: 105%; } }
+        @keyframes pdriveL { to { left: -90px; } }
+        @keyframes pleave { 0%, 55% { transform: none; opacity: 1; } 70% { transform: translateY(-60px); opacity: 0; } 84% { transform: translateY(-60px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+        .visitor { position: absolute; left: 0; top: 0; z-index: 22; font-size: 15px; pointer-events: none; will-change: transform; }
+        .visitor.walking i { display: inline-block; animation: vbob .7s ease-in-out infinite; }
+        .visitor.enter { transition: opacity .4s, scale .4s !important; opacity: 0; scale: .3; }
+        @keyframes vbob { 50% { transform: translateY(-2px); } }
+        .seat { position: absolute; bottom: -1px; left: 50%; margin-left: -45%; width: 90%; height: 82%; z-index: 0; opacity: .85; pointer-events: none; transition: opacity .4s;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Ccircle cx='12' cy='7' r='4.6' fill='%230f2a43'/%3E%3Cpath d='M5 30 L6 16 Q12 11.5 18 15 L19 21 L26 21 L26 24 L18 24 L18 30 Z' fill='%230f2a43'/%3E%3Crect x='20' y='12' width='9' height='7' rx='1' fill='%230f2a43'/%3E%3Crect x='0' y='23' width='30' height='7' fill='%23182f46'/%3E%3C/svg%3E") center bottom / contain no-repeat; animation: seatwork 1.6s ease-in-out infinite; }
+        .win:nth-child(2n) .seat { transform: scaleX(-1); animation-delay: .5s; }
+        @keyframes seatwork { 50% { translate: 0 1.5px; } }
+        .scene.evac .seat { opacity: 0; }
+        /* Urgencias en rojo suave, con carros en movimiento */
+        .floor.base .fbody { position: relative; overflow: hidden; background: linear-gradient(180deg, #f1a3a3, #cc6666); border-left-color: #7f1d1d; box-shadow: inset 0 3px 0 rgba(255,255,255,.35), inset 0 -3px 0 #8f2f2f; color: #fff; }
+        .floor.base .fside { background: #8f2f2f; }
+        .floor.base .stair { background-color: #7f1d1d; }
+        .floor.base .base-info { position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(80,0,0,.55); }
+        .scene.evac-all .urg-cars { opacity: 0; }
+        .urg-cars { transition: opacity .5s; position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+        .urg-cars svg { position: absolute; bottom: 2px; left: 112%; height: 58%; width: auto; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); animation: urgdrive 40s linear infinite; animation-delay: -30s; }
+        .urg-cars .u1 { transform: scaleX(-1); animation-duration: 46s; animation-delay: -9s; }
+        .urg-cars .u2 { color: #1d4ed8; animation-duration: 52s; animation-delay: -24s; }
+        .urg-cars .u3 { color: #f8fafc; animation-duration: 38s; animation-delay: -2s; bottom: 3px; }
+        .urg-cars .u4 { color: #fbbf24; animation-duration: 60s; animation-delay: -44s; }
+        @keyframes urgdrive { 0% { left: 112%; } 40% { left: -30%; } 100% { left: -30%; } }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+            .icon-3d-box:hover, .vrow:hover { transform: none; }
+        }
+    </style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="car" viewBox="0 0 64 28">
+            <defs>
+                <linearGradient id="carShine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".42" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient>
+                <linearGradient id="carGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b3552"/><stop offset=".6" stop-color="#5b8db3"/><stop offset="1" stop-color="#b9dcf0"/></linearGradient>
+                <radialGradient id="carRim"><stop offset="0" stop-color="#f1f5f9"/><stop offset="1" stop-color="#64748b"/></radialGradient>
+            </defs>
+            <ellipse cx="32" cy="25.6" rx="29" ry="2.2" fill="rgba(0,0,0,.4)"/>
+            <path id="carBody" d="M2 19.2 L2.6 14.6 Q3.4 12 8 11.4 L17 10.6 Q21.5 4.2 28 3.4 L41 3.2 Q46.5 3.6 50.5 8.2 L56.5 10 Q61.6 11 62.4 14.6 L62.6 19.4 Q62.6 21.4 60.8 21.4 L3.8 21.4 Q2 21.4 2 19.2 Z" fill="currentColor"/>
+            <path d="M2 19.2 L2.6 14.6 Q3.4 12 8 11.4 L17 10.6 Q21.5 4.2 28 3.4 L41 3.2 Q46.5 3.6 50.5 8.2 L56.5 10 Q61.6 11 62.4 14.6 L62.6 19.4 Q62.6 21.4 60.8 21.4 L3.8 21.4 Q2 21.4 2 19.2 Z" fill="url(#carShine)"/>
+            <path d="M19.6 10.2 L24.6 5.2 Q26 4.4 28 4.4 L33.4 4.4 L33.4 10.2 Z M35.8 10.2 L35.8 4.4 L41 4.4 Q43.6 4.7 46.4 7.6 L50 10.2 Z" fill="url(#carGlass)"/>
+            <path d="M34.6 4.6 V19.6 M10 13.4 H17" stroke="rgba(0,0,0,.28)" stroke-width=".8" fill="none"/>
+            <rect x="3" y="18.4" width="58.6" height="2.6" rx="1" fill="rgba(0,0,0,.38)"/>
+            <path d="M58.6 12.4 L62.2 13.4 L62.3 16 L58.2 15.2 Z" fill="#fff6bf"/>
+            <rect x="2.1" y="12.6" width="2.6" height="3.4" rx=".8" fill="#ef4444"/>
+            <circle cx="14" cy="21.2" r="5.3" fill="#0b1220"/><circle cx="14" cy="21.2" r="3.1" fill="url(#carRim)"/><circle cx="14" cy="21.2" r="1" fill="#334155"/>
+            <circle cx="50" cy="21.2" r="5.3" fill="#0b1220"/><circle cx="50" cy="21.2" r="3.1" fill="url(#carRim)"/><circle cx="50" cy="21.2" r="1" fill="#334155"/>
+        </symbol>
+        <symbol id="amb" viewBox="0 0 70 32">
+            <rect x="21" y="2" width="11" height="3" rx="1" fill="#EF4444"/>
+            <path d="M2 24 V9 Q2 6 5 6 H42 V24 Z" fill="#f8fafc"/><path d="M2 24 V9 Q2 6 5 6 H42 V24 Z" fill="url(#carShine)"/>
+            <path d="M42 11 H54 L63 18 Q67 19 67 22 V24 H42 Z" fill="#f8fafc"/>
+            <path d="M45 13 H53 L59 18 H45 Z" fill="#8cc3dc"/>
+            <rect x="2" y="19" width="40" height="3" fill="#EF4444"/>
+            <path d="M17 8 h5 v4 h4 v5 h-4 v4 h-5 v-4 h-4 v-5 h4z" fill="#EF4444"/>
+            <circle cx="15" cy="25" r="5.5" fill="#0f172a"/><circle cx="15" cy="25" r="2.3" fill="#94a3b8"/>
+            <circle cx="54" cy="25" r="5.5" fill="#0f172a"/><circle cx="54" cy="25" r="2.3" fill="#94a3b8"/>
+        </symbol>
+    </defs>
+</svg>
+
+<header class="top">
+    <div class="top-in">
+        <div class="brand">
+            <div class="logo-box">
+                <img src="Logo_Brigada_CP.png" alt="Logo Brigada Clínica del Prado"
+                     onerror="this.onerror=null; this.outerHTML='<span style=&quot;font-family:Sora,sans-serif;font-weight:800;color:#008080;font-size:17px;text-align:center;line-height:1.15;padding:0 6px&quot;>Brigada<br>CP</span>'">
+            </div>
+            <div>
+                <h1>Brigada de Emergencia</h1>
+                <p>Clínica del Prado &bull; Mapa interactivo de evacuación por pisos</p>
+            </div>
+        </div>
+        <div class="top-stats">
+            <button class="btn-alarm btn-head js-gen" onclick="evacuateAll()" title="Simula la evacuación de todos los pisos al mismo tiempo"><i class="fa-solid fa-bell"></i> Evacuación general</button>
+            <button class="stat stat-btn" onclick="togglePresent()" title="Pantalla completa para proyectar en una reunión o capacitación">
+                <span class="icon-3d-box"><i class="fa-solid fa-expand"></i></span>
+                <span><small>Pantalla completa</small><b>Modo presentación</b></span>
+            </button>
+            <div class="stat">
+                <span class="icon-3d-box green"><i class="fa-solid fa-shield-halved"></i></span>
+                <span><small>Videos vistos</small><b id="progText">0 de 0</b><div class="bar"><i id="progBar"></i></div></span>
+            </div>
+            <div class="stat">
+                <span class="icon-3d-box green"><i class="fa-solid fa-phone-flip"></i></span>
+                <span><small>Emergencias internas</small><b style="color:#6ee7b7">Ext. 8317</b></span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="layout">
+
+    <!-- ============ Edificio ============ -->
+    <section class="stage" aria-label="Edificio de 11 pisos">
+        <div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+
+        <div class="stage-head">
+            <p>Toque un piso para ver sus rutas de evacuación.</p>
+        </div>
+
+        <div class="alarm-banner" id="alarmBanner" role="alert">
+            <i class="fa-solid fa-bell bell" aria-hidden="true"></i>
+            <div>¡ALARMA DE EVACUACIÓN!<small>Está sonando la alarma: mantenga la calma y evacúe por la escalera de emergencia.</small></div>
+            <button class="snd" id="alarmSnd" onclick="toggleAlarmSound()" aria-label="Silenciar o activar el sonido de la alarma" title="Silenciar / activar sonido"><i class="fa-solid fa-volume-high"></i></button>
+        </div>
+
+        <div class="scene" id="scene">
+            <div class="skyline"></div>
+            <div class="hud" id="hud" aria-hidden="true"></div>
+            <div class="bld">
+                <div class="row3 roofrow">
+                    <div class="roofbox">
+                        <span class="tank"></span><span class="unit u1"></span><span class="mroom"></span><span class="unit u2"></span><span class="parapet"></span>
+                        <div class="roof-sign"><i class="fa-solid fa-hospital"></i> Clínica del Prado</div>
+                        <span class="antenna"></span>
+                    </div>
+                    <div class="rooftop"></div>
+                </div>
+                <div class="floors" id="floors"><span class="flow"></span><span class="flow flow-r"></span><span class="glare"></span></div>
+            </div>
+
+            <aside class="zone" id="zone">
+                <i class="fa-solid fa-tree tree"></i>
+                <div class="zone-sign" id="zoneSign">
+                    <span class="icon-3d-box green"><i class="fa-solid fa-users"></i></span><br>
+                    Punto de encuentro
+                </div>
+                <div class="zone-pole"></div>
+                <div class="zone-people" aria-hidden="true"><i class="fa-solid fa-person"></i><i class="fa-solid fa-person"></i><i class="fa-solid fa-person"></i><i class="fa-solid fa-person"></i></div>
+            </aside>
+
+            <div class="ground" id="ground"></div>
+            <div class="under" id="under"></div>
+            <div class="soil"></div><div class="soilr soil"></div>
+
+            <span class="runner icon-3d-box amber" id="runner" aria-hidden="true"><i class="fa-solid fa-person-running"></i></span>
+        </div>
+
+        <div class="stage-foot">
+            <div class="legend">
+                <span><i class="sw a"></i> Piso con videos</span>
+                <span><i class="sw b"></i> Piso completado</span>
+                <span><i class="sw d"></i> Parqueadero</span>
+                <span><i class="sw c"></i> Sin videos aún</span>
+                <span class="keys"><kbd>←</kbd> <kbd>→</kbd> pisos &nbsp; <kbd>E</kbd> evacuar &nbsp; <kbd>Esc</kbd> detener</span>
+            </div>
+            <p class="sim-note" id="simNote" aria-live="polite"></p>
+        </div>
+    </section>
+
+    <!-- ============ Panel ============ -->
+    <section class="panel" aria-live="polite">
+        <div class="search">
+            <i class="fa-solid fa-magnifying-glass lens"></i>
+            <input type="search" id="q" placeholder="Buscar por servicio, área o ruta" aria-label="Buscar rutas de evacuación" autocomplete="off">
+            <button class="clear hidden" id="qClear" aria-label="Borrar búsqueda"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div id="panelBody"></div>
+
+        <div class="gold">
+            <span class="icon-3d-box amber"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <div><b>Regla de oro.</b> Mantenga la calma, camine por su derecha sin correr, no use ascensores y siga las indicaciones de la Brigada. Si encuentra un obstáculo en una ruta, repórtelo de inmediato a la ext. 8317.</div>
+        </div>
+    </section>
+</main>
+
+<!-- ============ Reproductor ============ -->
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-card">
+        <div class="m-head">
+            <div class="l">
+                <span class="icon-3d-box"><i class="fa-solid fa-play"></i></span>
+                <div style="min-width:0"><h3 id="mTitle">Video</h3><small id="mSub"></small></div>
+            </div>
+            <button class="m-close" onclick="closeModal()" aria-label="Cerrar reproductor"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="m-body">
+            <div class="m-player">
+                <video id="mVideo" controls controlsList="nodownload" playsinline>Su navegador no soporta la reproducción de video HTML5.</video>
+                <div id="mError" class="m-error hidden">
+                    <i class="fa-solid fa-video-slash"></i>
+                    <b>No se pudo cargar el video</b>
+                    <span style="font-size:12.5px;color:#cbd5e1">Verifique que este archivo esté en la misma carpeta que la página:</span>
+                    <code id="mErrFile"></code>
+                </div>
+            </div>
+            <div id="mWarn" class="m-warn hidden"><i class="fa-solid fa-triangle-exclamation"></i> Esta NO es una ruta de evacuación segura. Úsela solo como referencia de lo que debe evitar.</div>
+            <div class="m-nav">
+                <button class="btn-flat" onclick="navModal(-1)"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                <span class="hint">Cambie de video con las flechas ← →</span>
+                <button class="btn-flat" onclick="navModal(1)">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="m-desc"><p id="mDesc"></p></div>
+        </div>
+        <div class="m-foot">
+            <span><i class="fa-solid fa-circle-info"></i>¿Encontró un obstáculo en esta ruta? Repórtelo a la ext. 8317.</span>
+            <button class="btn-flat" onclick="closeModal()">Cerrar ventana</button>
+        </div>
+    </div>
+</div>
+
+<footer class="bottom">
+    <div class="in">
+        <span><i class="fa-solid fa-shield-halved"></i>&copy; Clínica del Prado - Quirónsalud. Todos los derechos reservados.</span>
+        <span><i class="fa-solid fa-kit-medical"></i>Plan de Emergencias &bull; Brigada Institucional</span>
+    </div>
+</footer>
+
+<script>
+    /* =====================================================================
+       Datos. Para mover un video de piso, cambie su campo "floor".
+       floor: 0 = Sótano, 1 a 11 = pisos.
+       ===================================================================== */
+    const TOTAL_FLOORS = 11;
+    const videos = [
+        { id: 1,  floor: 0,  title: "Presentación General & Servicio Urgencias", filename: "Rutas evacuacion.mp4", label: "Urgencias General", icon: "fa-hospital", duration: "Evacuación Principal",
+          description: "Visión general sobre las directrices de la Brigada de Emergencia y la distribución estratégica de las rutas de evacuación en el servicio de urgencias." },
+        { id: 2,  floor: 0,  title: "Salida de Emergencia Urgencias - Recorrido", filename: "Urgencias 1.mp4", label: "Urgencias Ruta 1", icon: "fa-person-walking-arrow-right", duration: "Recorrido Directo",
+          description: "Recorrido guiado de la salida de emergencia oficial desde el área principal de urgencias hacia la zona exterior de despeje." },
+        { id: 3,  floor: 0,  title: "Salida No Recomendada en Urgencias", filename: "Urgencias 2.mp4", label: "Advertencia Urgencias", icon: "fa-triangle-exclamation", duration: "Ruta Bloqueada / Precaución", warning: true,
+          description: "Identificación de vía de paso de alto riesgo o bloqueada. Instrucciones explícitas de POR QUÉ NO se debe evacuar por esta área durante una contingencia." },
+        { id: 4,  floor: 0,  title: "Segunda Salida Urgencias - Sótano", filename: "Urgencias 3.mp4", label: "Urgencias Sótano", icon: "fa-arrow-turn-down", duration: "Salida Secundaria",
+          description: "Ruta de salida secundaria de Urgencias a través de las escaleras de emergencia del sótano." },
+        { id: 5,  floor: 0,  title: "Salida hacia Parqueadero y Punto de Encuentro", filename: "Urgencias 4.mp4", label: "Punto de Encuentro", icon: "fa-location-dot", duration: "Hacia el Exterior",
+          description: "Tramo final de la evacuación desde urgencias hasta el parqueadero principal de la clínica, punto final de reunión." },
+        { id: 6,  floor: 10, title: "Ruta Evacuación General - Piso 10", filename: "Piso 10_1.mp4", label: "Piso 10", icon: "fa-building", duration: "Ruta Estándar",
+          description: "Instrucciones de salida de emergencia para el personal y pacientes ubicados en el sector general del Piso 10." },
+        { id: 7,  floor: 10, title: "Evacuación Consulta Externa - Piso 10", filename: "Piso 10_CE.mp4", label: "Consulta Externa P10", icon: "fa-user-doctor", duration: "Atención Externa",
+          description: "Procedimiento de evacuación rápido para la zona de consultorios y sala de espera de Consulta Externa en el Piso 10." },
+        { id: 11, floor: 10, title: "Punto de Encuentro 1 - Piso 10", filename: "Piso 10_pto1.mp4", label: "Punto 1 P10", icon: "fa-door-open", duration: "Punto de Control",
+          description: "Recorrido del punto 1 del Piso 10 por el pasillo hasta la puerta cortafuego señalizada como solo salida de emergencia, hacia las escaleras." },
+        { id: 8,  floor: 10, title: "Estación de Enfermería 2 - Piso 10", filename: "Piso 10_pto2.mp4", label: "Enfermería P10", icon: "fa-user-nurse", duration: "Punto de Control",
+          description: "Directrices específicas para el personal de enfermería en el punto 2 del Piso 10 respecto a la evacuación segura de pacientes." },
+        { id: 12, floor: 10, title: "Recorrido por el Pasillo - Piso 10", filename: "Piso 10_pasillo.mp4", label: "Pasillo P10", icon: "fa-route", duration: "Ruta de Pasillo",
+          description: "Trayecto de evacuación por el pasillo principal del Piso 10, siguiendo la señalización de salida hasta la puerta de emergencia hacia las escaleras." },
+        { id: 9,  floor: 9,  title: "Ruta de Evacuación Piso 9 - Cirugía", filename: "Piso 9 cirugia.mp4", label: "Piso 9 Quirófanos", icon: "fa-kit-medical", duration: "Área Crítica",
+          description: "Protocolo de evacuación de emergencia para salas de cirugía y zonas estériles situadas en el noveno piso." },
+        { id: 10, floor: 9,  title: "Ruta de Evacuación Piso 9 - Obstetricia", filename: "Piso 9 obstetricia.mp4", label: "Piso 9 Maternidad", icon: "fa-baby", duration: "Atención Especial",
+          description: "Protocolo de seguridad e itinerario de evacuación rápida para la unidad obstetricia y maternidad del Piso 9." },
+        { id: 13, floor: 9,  title: "Ruta de Evacuación Piso 9 - Unidad Neonatal", filename: "Piso 9_Unidad neonatal.mp4", label: "Piso 9 Neonatal", icon: "fa-baby-carriage", duration: "Área Crítica",
+          description: "Protocolo de evacuación de la Unidad Neonatal del Piso 9: salida del personal y traslado seguro de los recién nacidos por la ruta señalizada." },
+        { id: 14, floor: 9,  title: "Ruta de Evacuación Piso 9 - UCIA", filename: "Piso 9_UCIA.mp4", label: "Piso 9 UCIA", icon: "fa-bed-pulse", duration: "Área Crítica",
+          description: "Recorrido de evacuación de la UCIA del Piso 9: salida por el pasillo señalizado hasta la puerta de emergencia hacia las escaleras." },
+        { id: 15, floor: 1,  title: "Recorrido por la Entrada Principal - Piso 1", filename: "Piso 1_1.mp4", label: "Entrada P1", icon: "fa-person-walking", duration: "Ruta de Acceso",
+          description: "Recorrido por el vestíbulo de la entrada principal del Piso 1, pasando por el control de acceso, hacia las puertas de salida del edificio." },
+        { id: 16, floor: 1,  title: "Salida de Emergencia - Piso 1", filename: "Piso 1_2.mp4", label: "Salida P1", icon: "fa-door-open", duration: "Salida Exterior",
+          description: "Trayecto por el pasillo del Piso 1 hasta las puertas de vidrio señalizadas como solo salida de emergencia, que dan al exterior." },
+        { id: 17, floor: 11, title: "Ruta de Evacuación Piso 11 - Recorrido 1", filename: "Piso_11_1.mp4", label: "Ruta 1 P11", icon: "fa-person-walking", duration: "Ruta Estándar",
+          description: "Recorrido de evacuación del Piso 11 por el pasillo hasta la puerta señalizada como salida de emergencia." },
+        { id: 18, floor: 11, title: "Ruta de Evacuación Piso 11 - Recorrido 2", filename: "Piso_11_2.mp4", label: "Ruta 2 P11", icon: "fa-people-group", duration: "Evacuación en Grupo",
+          description: "El personal del Piso 11 avanza en grupo por el pasillo siguiendo la señal luminosa de salida hacia la puerta de emergencia." },
+        { id: 19, floor: 11, title: "Ruta de Evacuación Piso 11 - Puerta de Emergencia", filename: "Piso_11_3.mp4", label: "Salida P11", icon: "fa-door-open", duration: "Salida de Emergencia",
+          description: "Paso por la puerta de emergencia del Piso 11, junto al gabinete contra incendios y la señalización de ruta de evacuación." },
+        { id: 20, floor: 11, title: "Ruta de Evacuación Piso 11 - Hacia las Escaleras", filename: "Piso_11_4.mp4", label: "Escaleras P11", icon: "fa-stairs", duration: "Ruta de Pasillo",
+          description: "Trayecto por el pasillo del Piso 11 hasta la zona de escaleras de emergencia, siguiendo la señalización del piso." },
+        { id: 21, floor: 11, title: "Ruta de Evacuación Piso 11 - Solo Salida de Emergencia", filename: "Piso_11_5.mp4", label: "Emergencia P11", icon: "fa-route", duration: "Punto de Control",
+          description: "Llegada a la puerta marcada como solo salida de emergencia en el Piso 11 y acceso a la escalera de evacuación." },
+        { id: 22, floor: 8, title: "Ruta de Evacuación Piso 8 - Auditorio", filename: "Piso_8_Auditorio.mp4", label: "Auditorio P8", icon: "fa-chalkboard-user", duration: "Zona de Reunión",
+          description: "Ruta de evacuación desde el auditorio del Piso 8 hacia la escalera de emergencia, siguiendo la señalización y a la Brigada." },
+        { id: 23, floor: 8, title: "Ruta de Evacuación Piso 8 - Sistemas y Facturación", filename: "Piso_8_Sistemas_y_Facturacion.mp4", label: "Sistemas y Facturación P8", icon: "fa-computer", duration: "Área Administrativa",
+          description: "Ruta de evacuación desde las oficinas de Sistemas y Facturación del Piso 8 hasta la escalera de emergencia." }
+    ];
+
+    // Resumen que se muestra bajo el título de cada piso
+    const FLOOR_AREAS = {
+        0: "Urgencias",
+        1: "Entrada principal",
+        2: "SYNLAB", 3: "Parqueadero", 4: "Parqueadero", 5: "Parqueadero", 6: "Parqueadero", 7: "Parqueadero",
+        8: "Auditorio, Sistemas y Facturación (mitad parqueadero)",
+        9: "Cirugía, Obstetricia, Neonatal y UCIA",
+        10: "Consulta Externa, enfermería y pasillos",
+        11: "Rutas de evacuación y salida de emergencia"
+    };
+
+    /* ============ Utilidades y estado ============ */
+    const $ = id => document.getElementById(id);
+    const norm = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const fmt = s => isFinite(s) ? Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0') : '';
+    const SEEN_KEY = 'cp_rutas_vistas';
+    let seen = new Set();
+    try { seen = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]')); } catch (e) {}
+    let curFloor = 1, query = '', modalId = null, lastFocus = null, simToken = 0;
+
+    // Pisos de parqueadero: 'full' = todo el piso, 'half' = mitad parqueadero y mitad oficinas
+    const PARK = { 3: 'full', 4: 'full', 5: 'full', 6: 'full', 7: 'full', 8: 'half' };
+    const FLOOR_NOTES = {
+        1: "Este es el nivel de la entrada principal. Aún no hay videos para él; use la salida principal o la escalera y siga a la Brigada.",
+        8: "La mitad de este piso es parqueadero. Use la escalera de emergencia y siga a la Brigada."
+    };
+    FLOOR_NOTES[2] = "Este piso es SYNLAB. Aún no hay videos para él; use la escalera de emergencia y siga a la Brigada.";
+    for (let f = 3; f <= 7; f++) FLOOR_NOTES[f] = "Este piso es parqueadero. Aún no hay videos para él; use la escalera de emergencia y siga a la Brigada.";
+    const byFloor = f => videos.filter(v => v.floor === f);
+    const floorName = f => f === 0 ? 'Sótano' : 'Piso ' + f;
+    const isDone = f => { const l = byFloor(f); return l.length > 0 && l.every(v => seen.has(v.id)); };
+    const results = () => { const q = norm(query.trim()); return videos.filter(v => norm([v.title, v.description, v.label, v.duration, floorName(v.floor)].join(' ')).includes(q)); };
+    const saveSeen = () => { try { localStorage.setItem(SEEN_KEY, JSON.stringify([...seen])); } catch (e) {} };
+
+    /* ============ Edificio ============ */
+    const carSvg = '<svg class="car" viewBox="0 0 64 28" aria-hidden="true"><use href="#car"/></svg>';
+    const slots = (n, f) => Array.from({ length: n }, (_, i) => `<span class="slot">${(f * 3 + i * 5) % 7 === 0 ? '' : carSvg}</span>`).join('');
+    // Escaleras de emergencia a ambos lados del edificio
+    const SL = '<span class="stair stair-l"></span>', SR = '<span class="stair stair-r"></span>';
+    // Ventana; en los pisos 1, 9, 10 y 11 algunas llevan una silueta caminando detrás del vidrio
+    const SIL_FLOORS = [1, 9, 10, 11];
+    function winEl(f, i, d) {
+        const sil = SIL_FLOORS.includes(f) && (f * 5 + i * 3) % 4 !== 0
+            ? `<b class="sil" style="--sd:${7 + ((f * 3 + i * 5) % 6)}s;--sl:-${((f + i * 7) % 11)}s"></b>` : '';
+        return `<i class="win" style="--d:${d}s">${sil}</i>`;
+    }
+    function floorHTML(f) {
+        const base = f === 0, one = f === 1, park = PARK[f];
+        let inner;
+        if (base) {
+            const cars = '<span class="urg-cars" aria-hidden="true"><svg class="u1" viewBox="0 0 70 32"><use href="#amb"/></svg><svg class="u2" viewBox="0 0 64 28"><use href="#car"/></svg><svg class="u3" viewBox="0 0 64 28"><use href="#car"/></svg><svg class="u4" viewBox="0 0 64 28"><use href="#car"/></svg></span>';
+            inner = `${SL}${cars}<span class="base-info"><span>Urgencias</span></span><span class="fcount"></span>${SR}`;
+        } else if (one) {
+            inner = `${SL}<span class="wins">${[0, 1].map(i => winEl(f, i, 0)).join('')}</span><span class="urg-sign">ENTRADA<br>PRINCIPAL</span><span class="door"></span><span class="wins">${[0, 1].map(i => winEl(f, i, 0)).join('')}</span><span class="fcount"></span>${SR}`;
+        } else if (park === 'full') {
+            inner = `${SL}<span class="deck">${slots(5, f)}</span><span class="fcount"></span>${SR}`;
+        } else if (park === 'half') {
+            const wins = Array.from({ length: 3 }, (_, i) => `<i class="win" style="--d:${i * 0.45}s"><b class="seat"></b></i>`).join('');
+            inner = `${SL}<span class="deck">${slots(3, f)}</span><span class="wins">${wins}</span><span class="fcount"></span>${SR}`;
+        } else if (f === 2) {
+            // Piso de vidrios con el rótulo SYNLAB de lado a lado
+            const wins = Array.from({ length: 7 }, (_, i) => winEl(f, i, ((f * 7 + i * 3) % 9) * 0.45)).join('');
+            const sign = '<svg class="symlab" viewBox="0 0 100 20" preserveAspectRatio="none" role="img" aria-label="SYNLAB"><text x="50" y="16.2" text-anchor="middle" textLength="97" lengthAdjust="spacingAndGlyphs">SYNLAB</text></svg>';
+            inner = `${SL}<span class="wins">${wins}${sign}</span><span class="fcount"></span>${SR}`;
+        } else {
+            const wins = Array.from({ length: 7 }, (_, i) => winEl(f, i, ((f * 7 + i * 3) % 9) * 0.45)).join('');
+            inner = `${SL}<span class="wins">${wins}</span><span class="fcount"></span>${SR}`;
+        }
+        return `<button class="row3 floor${base ? ' base' : ''}${one ? ' one' : ''}${park ? ' park' : ''}${park === 'half' ? ' half' : ''}" data-floor="${f}" title="${floorName(f)}${FLOOR_AREAS[f] ? ' · ' + FLOOR_AREAS[f] : ''}" onclick="selectFloor(${f}, true)">
+            <span class="fnum">${base ? 'S' : f}</span>
+            <span class="fbody">${inner}</span>
+            <span class="fside"></span>
+        </button>`;
+    }
+
+    function buildBuilding() {
+        const keep = [...$('floors').querySelectorAll('.flow, .glare')];
+        let html = '';
+        for (let f = TOTAL_FLOORS; f >= 1; f--) html += floorHTML(f);
+        $('floors').innerHTML = html;
+        $('floors').prepend(...keep);
+        $('under').innerHTML = floorHTML(0);
+    }
+
+    function refreshBuilding() {
+        const q = query.trim() !== '';
+        const hits = q ? new Set(results().map(v => v.floor)) : null;
+        document.querySelectorAll('.floor').forEach(el => {
+            const f = +el.dataset.floor, n = byFloor(f).length, done = isDone(f);
+            el.classList.toggle('has', n > 0);
+            el.classList.toggle('empty', n === 0);
+            el.classList.toggle('done', done);
+            el.classList.toggle('sel', !q && f === curFloor);
+            el.classList.toggle('match', q && hits.has(f));
+            el.classList.toggle('dim', q && !hits.has(f));
+            el.setAttribute('aria-pressed', f === curFloor);
+            const seenN = byFloor(f).filter(v => seen.has(v.id)).length;
+            el.setAttribute('aria-label', n === 0 ? `${floorName(f)}${PARK[f] ? ', parqueadero' : f === 1 ? ', entrada principal' : ''}, sin videos aún` : `${floorName(f)}, ${n} ${n === 1 ? 'video' : 'videos'}, ${seenN} vistos`);
+            const c = el.querySelector('.fcount');
+            c.innerHTML = n === 0 ? (PARK[f] ? '<i class="fa-solid fa-square-parking"></i>' : '<i class="fa-solid fa-minus"></i>') : done ? `<i class="fa-solid fa-check"></i> ${n}` : `<i class="fa-solid fa-play" style="font-size:9px"></i> ${n}`;
+        });
+        const total = videos.length, n = videos.filter(v => seen.has(v.id)).length;
+        $('progText').textContent = `${n} de ${total}`;
+        $('progBar').style.width = (n / total * 100) + '%';
+    }
+
+    function selectFloor(f, user) {
+        if (f < 0 || f > TOTAL_FLOORS) return;
+        if (query) { query = ''; $('q').value = ''; $('qClear').classList.add('hidden'); }
+        curFloor = f;
+        refreshBuilding();
+        renderPanel();
+        if (!modalId) history.replaceState(null, '', '#piso-' + f);
+        if (user && window.innerWidth <= 980) $('panelBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* ============ Panel ============ */
+    function rowHTML(v, showFloor) {
+        const seenIt = seen.has(v.id);
+        return `<article class="vrow${v.warning ? ' warn' : ''}" data-id="${v.id}">
+            <button class="thumb" onclick="openModal(${v.id})" aria-label="Ver ruta: ${v.title}">
+                <video data-src="${encodeURI(v.filename)}#t=0.5" preload="metadata" muted playsinline></video>
+                <span class="shade"><span class="play"><i class="fa-solid fa-play" style="margin-left:2px"></i></span></span>
+                <span class="len"></span>
+                ${seenIt ? '<span class="seen"><i class="fa-solid fa-check"></i> Visto</span>' : ''}
+                <span class="missing"><i class="fa-solid fa-video-slash" style="font-size:20px"></i>Archivo no encontrado<br>${v.filename}</span>
+            </button>
+            <div class="vinfo">
+                <div class="vtop">
+                    <span class="icon-3d-box${v.warning ? ' red' : ''}"><i class="fa-solid ${v.icon}"></i></span>
+                    <div><h3>${showFloor ? `<span class="floor-chip">${floorName(v.floor)}</span>` : ''}${v.title}</h3><small>${v.label}</small></div>
+                </div>
+                <p class="vdesc">${v.description}</p>
+                <div class="vbot">
+                    <span class="vtag${v.warning ? ' bad' : ''}"><i class="fa-solid ${v.warning ? 'fa-ban' : 'fa-route'}" style="${v.warning ? '' : 'color:var(--teal)'}"></i>${v.warning ? 'No usar para evacuar' : v.duration}</span>
+                    <button class="btn-3d" onclick="openModal(${v.id})"><i class="fa-solid fa-circle-play"></i> Ver ruta</button>
+                </div>
+            </div>
+        </article>`;
+    }
+
+    function renderPanel() {
+        const body = $('panelBody');
+        const q = query.trim() !== '';
+        let html = '';
+        if (q) {
+            const list = results();
+            html += `<div class="p-head"><span class="icon-3d-box bigfloor"><i class="fa-solid fa-magnifying-glass" style="font-size:24px"></i></span>
+                <div class="grow"><h2>Resultados</h2><p>${list.length} ${list.length === 1 ? 'ruta encontrada' : 'rutas encontradas'} para “${query.trim().replace(/[<>&]/g, '')}”.</p></div></div><div class="p-meta"></div>`;
+            html += list.length ? `<div class="vlist">${list.map(v => rowHTML(v, true)).join('')}</div>` :
+                `<div class="empty-state"><span class="icon-3d-box"><i class="fa-solid fa-video-slash"></i></span><h3>No hay rutas con ese término</h3><p>Pruebe con el nombre de un servicio, como cirugía o urgencias, o toque un piso del edificio.</p><button class="btn-3d" style="margin-top:14px" onclick="clearSearch()">Borrar búsqueda</button></div>`;
+        } else {
+            const list = byFloor(curFloor), n = list.length, seenN = list.filter(v => seen.has(v.id)).length;
+            const area = FLOOR_AREAS[curFloor] || (n ? list.map(v => v.label).join(', ') : 'Sin videos registrados');
+            html += `<div class="p-head">
+                <span class="icon-3d-box bigfloor">${curFloor === 0 ? 'S' : curFloor}</span>
+                <div class="grow"><h2>${floorName(curFloor)}</h2><p>${area}</p></div>
+                <div class="stepper">
+                    <button onclick="selectFloor(${curFloor + 1}, false)" ${curFloor >= TOTAL_FLOORS ? 'disabled' : ''} aria-label="Subir al piso siguiente" title="Piso siguiente"><i class="fa-solid fa-chevron-up"></i></button>
+                    <button onclick="selectFloor(${curFloor - 1}, false)" ${curFloor <= 0 ? 'disabled' : ''} aria-label="Bajar al piso anterior" title="Piso anterior"><i class="fa-solid fa-chevron-down"></i></button>
+                </div></div>
+                <div class="p-meta">
+                    <span class="chip"><i class="fa-solid fa-film"></i>${n} ${n === 1 ? 'video' : 'videos'}</span>
+                    ${n ? `<span class="chip g"><i class="fa-solid fa-check"></i>${seenN} de ${n} vistos</span>` : ''}
+                    <button class="btn-flat" id="simBtn" onclick="simulate()"><i class="fa-solid fa-person-running"></i> Simular evacuación desde ${curFloor === 0 ? 'el sótano' : 'este piso'}</button>
+                </div>`;
+            html += n ? `<div class="vlist">${list.map(v => rowHTML(v, false)).join('')}</div>` :
+                (floorSim(curFloor) || `<div class="empty-state"><span class="icon-3d-box"><i class="fa-solid fa-video-slash"></i></span><h3>Aún no hay videos para este piso</h3><p>${FLOOR_NOTES[curFloor] || 'Cuando se grabe el recorrido de evacuación de este piso, aparecerá aquí. Mientras tanto, use la escalera de emergencia y siga a la Brigada.'}</p></div>`);
+        }
+        body.innerHTML = html;
+        body.querySelectorAll('.thumb video').forEach(v => {
+            const th = v.closest('.thumb');
+            v.addEventListener('loadedmetadata', () => { th.querySelector('.len').textContent = fmt(v.duration); });
+            v.addEventListener('error', () => th.classList.add('nofile'));
+            v.src = v.dataset.src;
+        });
+    }
+
+    function clearSearch() { query = ''; $('q').value = ''; $('qClear').classList.add('hidden'); refreshBuilding(); renderPanel(); }
+
+    /* ============ Reproductor ============ */
+    const navList = () => {
+        const v = videos.find(x => x.id === modalId);
+        return query.trim() ? results() : byFloor(v.floor);
+    };
+
+    function openModal(id) {
+        const v = videos.find(x => x.id === id);
+        if (!v) return;
+        const modal = $('modal'), p = $('mVideo');
+        if (modal.classList.contains('hidden')) lastFocus = document.activeElement;
+        modalId = id;
+        if (!query.trim() && curFloor !== v.floor) { curFloor = v.floor; refreshBuilding(); renderPanel(); }
+        const list = navList();
+        $('mTitle').textContent = v.title;
+        $('mSub').textContent = `${floorName(v.floor)}, ${v.label}. Video ${list.findIndex(x => x.id === id) + 1} de ${list.length}`;
+        $('mDesc').textContent = v.description;
+        $('mWarn').classList.toggle('hidden', !v.warning);
+        $('mError').classList.add('hidden');
+        p.pause();
+        p.src = encodeURI(v.filename);
+        p.load();
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        history.replaceState(null, '', '#ruta-' + id);
+        modal.querySelector('.m-close').focus();
+        const pr = p.play(); if (pr) pr.catch(() => {});
+    }
+
+    function closeModal() {
+        const modal = $('modal'), p = $('mVideo');
+        if (modal.classList.contains('hidden')) return;
+        p.pause(); p.removeAttribute('src'); p.load();
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        modalId = null;
+        history.replaceState(null, '', '#piso-' + curFloor);
+        if (lastFocus) lastFocus.focus();
+    }
+
+    function navModal(d) {
+        const list = navList(), i = list.findIndex(x => x.id === modalId);
+        openModal(list[(i + d + list.length) % list.length].id);
+    }
+
+    /* ============ Simulación de evacuación ============ */
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    /* ----- Alarma (visual + sonido) ----- */
+    let alarmCtx = null, alarmOsc = null, alarmTimer = null, alarmMuted = false, alarmOn = false;
+    function startAlarmSound() {
+        if (alarmMuted || alarmOsc) return;
+        try {
+            alarmCtx = alarmCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (alarmCtx.state === 'suspended') alarmCtx.resume();
+            const o = alarmCtx.createOscillator(), g = alarmCtx.createGain();
+            o.type = 'square'; g.gain.value = 0.04;
+            o.connect(g); g.connect(alarmCtx.destination); o.start();
+            alarmOsc = o;
+            let hi = false;
+            const sw = () => { o.frequency.setValueAtTime(hi ? 980 : 700, alarmCtx.currentTime); hi = !hi; };
+            sw(); alarmTimer = setInterval(sw, 420);
+        } catch (e) {}
+    }
+    function stopAlarmSound() {
+        clearInterval(alarmTimer); alarmTimer = null;
+        try { if (alarmOsc) alarmOsc.stop(); } catch (e) {}
+        alarmOsc = null;
+    }
+    function toggleAlarmSound() {
+        alarmMuted = !alarmMuted;
+        $('alarmSnd').innerHTML = `<i class="fa-solid ${alarmMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i>`;
+        if (alarmMuted) stopAlarmSound(); else if (alarmOn) startAlarmSound();
+    }
+    function setAlarm(on) {
+        alarmOn = on;
+        $('alarmBanner').classList.toggle('on', on);
+        $('scene').classList.toggle('alarm', on);
+        if (on) startAlarmSound(); else stopAlarmSound();
+    }
+
+    /* ----- Motor de la simulación ----- */
+    const TONES = ['amber', '', 'green'];
+    const ZONE_SPREAD = [0, -16, 16, -32, 32, -48, 48];
+    function setBusy(b) { if (!b) $('scene').classList.remove('evac-all'); if (b) document.querySelectorAll('.visitor').forEach(e => e.remove()); if (!b) hudStop(false); $('scene').classList.toggle('evac', b); const sb = $('simBtn'); if (sb) sb.disabled = b; document.querySelectorAll('.js-gen').forEach(x => x.disabled = b); }
+    function clearSim() {
+        $('scene').querySelectorAll('.runner.crowd').forEach(e => e.remove());
+        $('runner').style.display = 'none';
+        document.querySelectorAll('.floor.pass').forEach(e => e.classList.remove('pass'));
+        $('zone').classList.remove('arrived');
+        setAlarm(false);
+    }
+    function simGeometry() {
+        const scene = $('scene'), sr = scene.getBoundingClientRect(), H = 12;
+        const stairOf = (f, side) => document.querySelector(`.floor[data-floor="${f}"] .stair-${side === 'R' ? 'r' : 'l'}`);
+        // Extremos de la escalera: "high" = lado interior (inicio del descenso), "low" = lado exterior (salida)
+        const ends = (f, side) => {
+            const r = stairOf(f, side).getBoundingClientRect(), R = side === 'R';
+            return {
+                high: { x: (R ? r.left + 8 : r.right - 8) - sr.left - H, y: r.top - sr.top + 12 - H },
+                low:  { x: (R ? r.right - 8 : r.left + 8) - sr.left - H, y: r.bottom - sr.top - 8 - H }
+            };
+        };
+        // Punto de partida: zona central del piso, hacia el lado de la escalera que usará la persona
+        const startOf = (f, side) => {
+            const fb = document.querySelector(`.floor[data-floor="${f}"] .fbody`);
+            const r = fb.getBoundingClientRect();
+            const parts = [...fb.children].filter(c => c.matches('.wins, .deck, .base-info'));
+            const a = (parts[0] || fb).getBoundingClientRect(), z = (parts[parts.length - 1] || fb).getBoundingClientRect();
+            const x = a.left + (z.right - a.left) * (side === 'R' ? 0.62 : 0.38);
+            return { x: x - sr.left - H, y: r.top - sr.top + r.height * 0.52 - H };
+        };
+        const gr = $('ground').getBoundingClientRect();
+        const zr = $('zoneSign').getBoundingClientRect();
+        return { scene, sr, H, ends, startOf, gy: gr.top - sr.top - 22, zx: zr.left - sr.left + zr.width / 2 - H };
+    }
+    // side: 'L' = escalera izquierda, 'R' = escalera derecha
+    function buildPath(g, f, side = 'L') {
+        const pts = [], nm = side === 'R' ? 'derecha' : 'izquierda';
+        pts.push({ ...g.startOf(f, side), floor: f, dur: 300, msg: `${floorName(f)}: avance por el pasillo hacia la escalera de emergencia ${nm}.` });
+        if (f >= 1) {
+            for (let k = f; k >= 1; k--) {
+                const e = g.ends(k, side), m = `${floorName(k)}: bajando por la escalera ${nm}, sin correr.`;
+                pts.push({ ...e.high, floor: k, dur: k === f ? 1100 : 520, msg: m });
+                pts.push({ ...e.low,  floor: k, dur: 520, msg: m });
+            }
+        } else {
+            const e = g.ends(0, side), m = `Sótano: subiendo por la escalera ${nm} hacia la salida.`;
+            pts.push({ ...e.low,  floor: 0, dur: 1100, msg: m });
+            pts.push({ ...e.high, floor: 0, dur: 520, msg: m });
+        }
+        const last = pts[pts.length - 1];
+        pts.push({ x: last.x, y: g.gy, floor: null, dur: 560, msg: 'Salida del edificio. Siga la ruta señalizada.' });
+        // Quien sale por la derecha recorre más suelo hasta el punto de encuentro
+        pts.push({ x: g.zx, y: g.gy, floor: null, zone: true, dur: Math.max(1300, Math.abs(last.x - g.zx) * 3.4), msg: 'Punto de encuentro: espere a la Brigada para el conteo.' });
+        return pts;
+    }
+    function makePerson(tone) {
+        const c = $('runner').cloneNode(true);
+        c.removeAttribute('id');
+        c.className = 'runner crowd icon-3d-box' + (tone ? ' ' + tone : '');
+        c.style.display = 'none';
+        $('scene').appendChild(c);
+        return c;
+    }
+    /* Icono del brigadista: logo de la Brigada (Logo_Brigada_CP.png, en la misma carpeta que este HTML) */
+    const BRIGADE_LOGO = 'Logo_Brigada_CP.png';
+    const BRIGADE_OFF = (24 - 38) / 2;           // centra el icono de 38 px sobre las rutas calculadas para 24 px
+    const BRIGADE_HEAD_START = 1000;              // ms que sale la Brigada antes que los demás (evacuación general)
+    function makeBrigade() {
+        const c = document.createElement('div');
+        c.className = 'runner crowd brigade';
+        c.style.display = 'none';
+        c.setAttribute('aria-hidden', 'true');
+        const img = new Image();
+        img.alt = 'Brigada de Emergencia';
+        img.onerror = () => { c.innerHTML = '<i class="fa-solid fa-shield-halved"></i>'; };   // si falta el logo
+        img.src = BRIGADE_LOGO;
+        c.appendChild(img);
+        $('scene').appendChild(c);
+        return c;
+    }
+    const place = (el, x, y) => { el.style.transform = `translate(${x}px, ${y}px)`; };
+    /* ----- Movimiento fluido: velocidad constante, sin paradas en cada tramo, y sin que los iconos se pisen ----- */
+    const SPEED = 0.062;      // px por ms (velocidad constante de caminata)
+    const DT = 100;          // ms: resolución del planificador de colisiones
+    const NO_BRIGADE = f => f >= 2 && f <= 7;   // en estos pisos NO nace ningún icono de la Brigada
+    // Puestos dentro de la columna del punto de encuentro (a la izquierda del edificio, lejos de las escaleras):
+    // las personas forman un grupo pegado al suelo y la Brigada se ubica en 2 columnas justo encima, sin tocarlas
+    const brigadeSlot = (k, B) => { const rows = Math.ceil(B / 2), col = Math.floor(k / rows), row = rows - 1 - (k % rows);
+        return { endDx: -28 + col * 44, endDy: -95 - row * 44 }; };
+    const personSlot = n => ({ endDx: -30 + (n % 6) * 12, endDy: -Math.floor(n / 6) * 12 });
+
+    // Trayecto en posiciones finales + duración de cada tramo según la distancia (así la velocidad es constante)
+    function timeline(w) {
+        w.seq = w.pts.map(p => ({ x: p.x + (p.zone ? w.endDx : w.jx), y: p.y + (p.zone ? w.endDy : w.jy), p }));
+        const L = w.seq.length - 1;
+        // En el último tramo camina por el suelo hasta su columna y luego sube a su puesto (no atraviesa a los demás)
+        if (w.pts[L].zone && Math.abs(w.endDy) > 1) w.seq.splice(L, 0, { x: w.seq[L].x, y: w.seq[L - 1].y, p: w.pts[L] });
+        w.durs = [0]; w.cum = [0];
+        for (let i = 1; i < w.seq.length; i++) {
+            const d = Math.hypot(w.seq[i].x - w.seq[i - 1].x, w.seq[i].y - w.seq[i - 1].y);
+            w.durs.push(Math.max(200, d / SPEED));
+            w.cum.push(w.cum[i - 1] + w.durs[i]);
+        }
+        w.rel = [];                                   // posición cada DT ms desde que sale
+        const total = w.cum[w.cum.length - 1];
+        for (let t = 0, i = 1; t <= total + DT; t += DT) {
+            while (i < w.cum.length - 1 && t > w.cum[i]) i++;
+            const f = Math.min(1, Math.max(0, (t - w.cum[i - 1]) / w.durs[i])), a = w.seq[i - 1], c = w.seq[i];
+            w.rel.push([a.x + (c.x - a.x) * f, a.y + (c.y - a.y) * f]);
+        }
+    }
+    const endTime = w => w.cum[w.cum.length - 1];
+    function collides(A, ka, B, kb) {
+        const m2 = (A.r + B.r + 3) * (A.r + B.r + 3);       // distancia mínima entre centros: nunca se tocan
+        const end = Math.max(A.rel.length + ka, B.rel.length + kb);
+        for (let s = Math.max(ka, kb); s < end; s++) {
+            const a = A.rel[Math.min(s - ka, A.rel.length - 1)], b = B.rel[Math.min(s - kb, B.rel.length - 1)];
+            const dx = a[0] - b[0], dy = a[1] - b[1];
+            if (dx * dx + dy * dy < m2) return true;
+        }
+        return false;
+    }
+    // Reparte puestos y retrasa lo mínimo necesario para que ningún icono de la Brigada se sobreponga con otro icono
+    function schedule(ws) {
+        ws.forEach(timeline);
+        const byArrival = g => g.sort((a, b) => (a.delay + endTime(a)) - (b.delay + endTime(b)));
+        const brigade = ws.filter(w => w.brigade), people = ws.filter(w => !w.brigade), placed = [];
+        byArrival(brigade.slice()).forEach((w, n) => {                 // primero la Brigada
+            Object.assign(w, brigadeSlot(n, brigade.length)); timeline(w);
+            let k = Math.round(w.delay / DT);                          // toda la Brigada sale a la vez (solo espera si chocaría)
+            for (let tries = 0; tries < 6 && placed.some(o => collides(w, k, o, o.k)); tries++) k++;   // Brigada: espera máx. 0,6 s
+            w.k = k; w.delay = k * DT; placed.push(w);
+        });
+        const firstPerson = brigade.length ? Math.min(...brigade.map(b => b.k)) + 1000 / DT : 0;   // 1 s después de que sale la Brigada   // nadie sale antes que la Brigada
+        byArrival(people.slice()).forEach((w, n) => {                  // después las personas (esquivan a la Brigada)
+            Object.assign(w, personSlot(n)); timeline(w);
+            let k = Math.max(Math.round(w.delay / DT), firstPerson);
+            const MAX_K = 30;                                          // ninguna persona sale más de 2 s después de la Brigada
+            for (let tries = 0; tries < 400 && k < MAX_K && placed.some(o => collides(w, k, o, o.k)); tries++) k++;
+            w.k = k; w.delay = k * DT;
+        });
+    }
+    async function walk(w, tok, hooks) {
+        const el = w.el;
+        await wait(w.delay);
+        if (tok !== simToken) return;
+        el.style.display = 'flex';
+        el.style.animationDelay = `-${(Math.random() * .46).toFixed(2)}s`;
+        el.classList.add('moving');
+        void el.offsetWidth;
+        if (w.lead && hooks.step) hooks.step(w.seq[0].p);
+        const t0 = performance.now(), last = w.seq.length - 1;
+        for (let i = 1; i <= last; i++) {
+            if (tok !== simToken) return;
+            const s = w.seq[i];
+            if (w.lead && hooks.step) hooks.step(s.p);
+            el.style.transition = `transform ${w.durs[i]}ms ${i === 1 && last > 1 ? 'cubic-bezier(.35,0,.7,1)' : i === last ? 'cubic-bezier(.3,.5,.5,1)' : 'linear'}`;
+            place(el, s.x + (w.ox || 0), s.y + (w.oy || 0));
+            // se programa contra el reloj absoluto: no se acumulan retrasos ni hay micro-paradas entre tramos
+            await wait(Math.max(0, t0 + w.cum[i] - performance.now() - (i < last ? 12 : -40)));
+        }
+        el.classList.remove('moving');
+        hudDone(); if (hooks.done) hooks.done(w);
+    }
+    async function launch(walkers, tok, hooks) {
+        schedule(walkers); hudStart(walkers.length);
+        walkers.forEach(w => {
+            w.el.style.transition = 'none';
+            place(w.el, w.seq[0].x + (w.ox || 0), w.seq[0].y + (w.oy || 0));
+        });
+        void $('scene').offsetWidth;
+        await Promise.all(walkers.map(w => walk(w, tok, hooks)));
+    }
+
+    /* ----- Simular evacuación desde el piso seleccionado (7 personas) ----- */
+    const SIM_PEOPLE = 5;        // + 2 brigadistas (con el logo), uno por escalera, que salen primero
+    const SIM_GAP = 100;         // ms entre una persona y la siguiente
+    async function simulate() {
+        const tok = ++simToken;
+        const note = $('simNote');
+        clearSim();
+        setBusy(true);
+        $('scene').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await wait(window.innerWidth <= 980 ? 450 : 50);
+        if (tok !== simToken) return;
+
+        const g = simGeometry();
+        const walkers = [];
+        // Un brigadista (logo) por cada escalera, salvo en los pisos 2 a 7 (allí no sale ningún icono de la Brigada)
+        if (!NO_BRIGADE(curFloor)) ['L', 'R'].forEach(side => walkers.push({
+            el: makeBrigade(), pts: buildPath(g, curFloor, side), lead: side === 'L', brigade: true, r: 14, ox: BRIGADE_OFF, oy: BRIGADE_OFF,
+            delay: 0, jx: 0, jy: 0, endDx: 0, endDy: 0
+        }));
+        // Después salen las demás personas, alternando escalera izquierda / derecha
+        const people = NO_BRIGADE(curFloor) ? SIM_PEOPLE + 2 : SIM_PEOPLE;
+        for (let i = 0; i < people; i++) {
+            walkers.push({
+                el: makePerson(TONES[(i + 1) % 3]), pts: buildPath(g, curFloor, i % 2 ? 'R' : 'L'), lead: false, brigade: false, r: 12,
+                delay: (NO_BRIGADE(curFloor) ? 0 : BRIGADE_HEAD_START) + i * SIM_GAP, jx: 0, jy: 0, endDx: 0, endDy: 0
+            });
+        }
+        if (!walkers.some(w => w.lead)) walkers[0].lead = true;
+        await launch(walkers, tok, {
+            step: p => {
+                document.querySelectorAll('.floor.pass').forEach(e => e.classList.remove('pass'));
+                if (p.floor !== null) document.querySelector(`.floor[data-floor="${p.floor}"]`).classList.add('pass');
+                note.textContent = p.msg;
+            }
+        });
+        if (tok !== simToken) return;
+        document.querySelectorAll('.floor.pass').forEach(e => e.classList.remove('pass'));
+        note.textContent = 'Simulación completa. Recuerde: nunca use ascensores en una emergencia.';
+        $('zone').classList.add('arrived');
+        await wait(2400);
+        if (tok !== simToken) return;
+        clearSim();
+        setBusy(false);
+    }
+
+    /* ----- Evacuación general: todos los pisos al mismo tiempo, con alarma ----- */
+    const GEN_PER_FLOOR = 3;
+    async function evacuateAll() {
+        const tok = ++simToken;
+        const note = $('simNote');
+        clearSim();
+        setBusy(true); $('scene').classList.add('evac-all');
+        setAlarm(true);
+        note.textContent = '¡Alarma de evacuación general! La Brigada sale primero y todos evacúan por ambas escaleras.';
+        $('scene').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await wait(window.innerWidth <= 980 ? 450 : 50);
+        if (tok !== simToken) return;
+
+        const g = simGeometry();
+        const walkers = [];
+        // La Brigada (logo) sale primero por AMBAS escaleras en los pisos con brigada (en los pisos 2 a 7 no sale ninguna)
+        for (let f = TOTAL_FLOORS; f >= 0; f--) {
+            if (NO_BRIGADE(f)) continue;
+            ['L', 'R'].forEach(side => walkers.push({
+                el: makeBrigade(), pts: buildPath(g, f, side), lead: false, brigade: true, r: 14, ox: BRIGADE_OFF, oy: BRIGADE_OFF,
+                delay: 0, jx: 0, jy: 0, endDx: 0, endDy: 0
+            }));
+        }
+        let n = 0;
+        for (let f = TOTAL_FLOORS; f >= 0; f--) {
+            for (let j = 0; j < GEN_PER_FLOOR; j++, n++) {
+                const side = (f + j) % 2 ? 'R' : 'L';   // reparto entre escalera izquierda y derecha
+                walkers.push({
+                    el: makePerson(TONES[(f + j) % 3]), pts: buildPath(g, f, side), lead: false, brigade: false, r: 12,
+                    delay: BRIGADE_HEAD_START + j * 150 + (f % 4) * 40,
+                    jx: ((n * 5) % 7 - 3) * 1.5, jy: ((n * 3) % 5 - 2) * 1,
+                    endDx: 0, endDy: 0
+                });
+            }
+        }
+        const total = walkers.length;
+        let arrived = 0;
+        await launch(walkers, tok, {
+            done: () => { arrived++; if (tok === simToken) note.textContent = `¡Alarma de evacuación general! Personas en el punto de encuentro: ${arrived} de ${total}.`; }
+        });
+        if (tok !== simToken) return;
+        note.textContent = `Evacuación general completa: ${total} personas en el punto de encuentro. Nunca use ascensores en una emergencia.`;
+        $('zone').classList.add('arrived');
+        await wait(3200);
+        if (tok !== simToken) return;
+        clearSim();
+        setBusy(false);
+    }
+
+    /* ============ Eventos ============ */
+    $('q').addEventListener('input', e => {
+        query = e.target.value;
+        $('qClear').classList.toggle('hidden', !query);
+        refreshBuilding();
+        renderPanel();
+    });
+    $('qClear').addEventListener('click', () => { clearSearch(); $('q').focus(); });
+
+    $('mVideo').addEventListener('error', () => {
+        const v = videos.find(x => x.id === modalId); if (!v) return;
+        $('mErrFile').textContent = v.filename;
+        $('mError').classList.remove('hidden');
+    });
+    $('mVideo').addEventListener('ended', () => {
+        if (modalId) { seen.add(modalId); saveSeen(); refreshBuilding(); renderPanel(); }
+    });
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+
+    document.addEventListener('keydown', e => {
+        if (!$('modal').classList.contains('hidden')) {
+            if (e.key === 'Escape') closeModal();
+            else if (e.key === 'ArrowRight') navModal(1);
+            else if (e.key === 'ArrowLeft') navModal(-1);
+            else if (e.key === 'Tab') {
+                const f = [...$('modal').querySelectorAll('button, video[controls]')].filter(x => x.offsetParent !== null);
+                if (!f.length) return;
+                const first = f[0], last = f[f.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+            return;
+        }
+        const a = document.activeElement;
+        const free = a === document.body || (a && a.classList && a.classList.contains('floor'));
+        if (free && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+            e.preventDefault();
+            selectFloor(curFloor + (e.key === 'ArrowUp' ? 1 : -1), false);
+            const el = document.querySelector(`.floor[data-floor="${curFloor}"]`); if (el && a !== document.body) el.focus();
+        }
+    });
+
+    /* ============ Inicio ============ */
+    buildBuilding();
+    const mp = location.hash.match(/ruta-(\d+)/), mf = location.hash.match(/piso-(\d+)/);
+    if (mf && +mf[1] <= TOTAL_FLOORS) curFloor = +mf[1];
+    refreshBuilding();
+    renderPanel();
+    if (mp) openModal(+mp[1]);
+
+
+
+    /* ===== Versión 2: marcador en vivo, atajos de teclado y modo presentación ===== */
+    let hudT = null, hudN = 0, hudTot = 0, hudT0 = 0;
+    function hudRender() {
+        const sec = Math.floor((performance.now() - hudT0) / 1000);
+        $('hud').innerHTML = `<span class="hud-l">Tiempo de evacuación</span><span class="hud-t"><i class="fa-solid fa-stopwatch"></i>${fmt(sec)}</span><span class="hud-n"><i class="fa-solid fa-person-walking"></i>${hudN} de ${hudTot} a salvo</span>`;
+    }
+    function hudStart(n) { $('hud').classList.remove('ok'); hudN = 0; hudTot = n; hudT0 = performance.now(); clearInterval(hudT); hudRender(); $('hud').classList.add('on'); hudT = setInterval(hudRender, 250); }
+    function hudDone() { hudN++; if (hudN >= hudTot) { clearInterval(hudT); hudT = null; hudRender(); $('hud').classList.add('ok'); } }
+    function hudStop(keep) { clearInterval(hudT); hudT = null; if (!keep) $('hud').classList.remove('on'); }
+    function togglePresent() {
+        const on = !document.fullscreenElement;
+        try { on ? document.documentElement.requestFullscreen() : document.exitFullscreen(); } catch (e) {}
+    }
+    document.addEventListener('fullscreenchange', () => document.body.classList.toggle('present', !!document.fullscreenElement));
+    document.addEventListener('keydown', e => {
+        if (!$('modal').classList.contains('hidden') || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (/^(INPUT|TEXTAREA|VIDEO)$/.test(document.activeElement.tagName)) return;
+        const busy = document.querySelector('.js-gen').disabled;
+        if (e.key === 'ArrowRight') selectFloor(Math.min(TOTAL_FLOORS, curFloor + 1), true);
+        else if (e.key === 'ArrowLeft') selectFloor(Math.max(0, curFloor - 1), true);
+        else if ((e.key === 'e' || e.key === 'E') && !busy) evacuateAll();
+        else if (e.key === 'Escape' && busy) { simToken++; clearSim(); setBusy(false); $('simNote').textContent = ''; if (typeof stopAlarmSound === 'function') stopAlarmSound(); }
+    });
+
+    /* ===== Simulaciones del panel derecho ===== */
+    const CAR = '<svg viewBox="0 0 64 28" aria-hidden="true"><use href="#car"/></svg>';
+    function floorSim(f) {
+        if (f === 2) {
+            const desks = Array.from({ length: 4 }, () => '<div class="o-desk"><i class="fa-solid fa-user o-worker"></i><i class="fa-solid fa-desktop o-mon"></i></div>').join('');
+            return `<div class="sim sim-office" role="img" aria-label="Simulación animada de las oficinas de SYNLAB">
+                <div class="o-lights"></div><span class="sim-title"><i class="fa-solid fa-building-user"></i>SYNLAB · Oficinas en funcionamiento</span>
+                <div class="o-wall"><span class="o-win"></span><i class="fa-regular fa-clock o-clock"></i><span class="o-win"></span><span class="o-win"></span></div>
+                <div class="o-row">${desks}</div>
+                <i class="fa-solid fa-person-walking o-walk"></i><i class="fa-solid fa-person-walking o-walk w2"></i><div class="o-floor"></div></div>
+                <p class="sim-cap">Piso de oficinas SYNLAB. En una emergencia, deje su puesto, use la escalera de emergencia y siga a la Brigada.</p>`;
+        }
+        if (f >= 3 && f <= 7) {
+            const slots = Array.from({ length: 6 }, (_, i) => (i + f) % 5 === 0 ? '<div class="p-slot empty"></div>' : `<div class="p-slot${(i + f) % 4 === 1 ? ' leave' : ''}">${CAR}</div>`).join('');
+            const lamps = [8, 30, 52, 74].map(x => `<span class="p-lamp" style="left:${x}%"></span>`).join('');
+            return `<div class="sim sim-park" role="img" aria-label="Simulación animada del parqueadero del piso ${f}">
+                <div class="p-ceil"></div>${lamps}<span class="sim-title"><i class="fa-solid fa-car-side"></i>Parqueadero · Piso ${f}</span>
+                <div class="p-lane"></div>
+                <svg class="p-car a" viewBox="0 0 64 28"><use href="#car"/></svg><svg class="p-car b" viewBox="0 0 64 28"><use href="#car"/></svg><svg class="p-car c" viewBox="0 0 64 28"><use href="#car"/></svg>
+                <div class="p-slots">${slots}</div></div>
+                <p class="sim-cap">Parqueadero del piso ${f}. En una emergencia no use el vehículo: deje el lugar libre, use la escalera de emergencia y siga a la Brigada.</p>`;
+        }
+        return '';
+    }
+
+    /* ===== Personas entrando al edificio por el piso 1 (se detienen en cualquier evacuación) ===== */
+    (function () {
+        const sc = $('scene'), TONE = ['#0B2545', '#134074', '#008080', '#b45309', '#7c3aed'];
+        function spawn() {
+            if (document.hidden || sc.classList.contains('evac') || sc.querySelectorAll('.visitor').length >= 4) return;
+            const door = sc.querySelector('.floor[data-floor="1"] .door'); if (!door) return;
+            const sr = sc.getBoundingClientRect(), d = door.getBoundingClientRect(), gr = $('ground').getBoundingClientRect();
+            const y = gr.top - sr.top - 17, tx = d.left - sr.left + d.width / 2 - 6;
+            const x0 = Math.random() < 0.65 ? sr.width - 24 : $('floors').getBoundingClientRect().left - sr.left + 4;
+            const el = document.createElement('span');
+            el.className = 'visitor'; el.setAttribute('aria-hidden', 'true');
+            el.innerHTML = '<i class="fa-solid fa-person"></i>'; el.style.color = TONE[Math.floor(Math.random() * TONE.length)];
+            el.style.transform = `translate(${x0}px, ${y}px)`; sc.appendChild(el); void el.offsetWidth;
+            const dur = Math.abs(tx - x0) / 0.04;
+            el.classList.add('walking'); el.style.transition = `transform ${dur}ms linear`; el.style.transform = `translate(${tx}px, ${y}px)`;
+            setTimeout(() => { el.classList.add('enter'); setTimeout(() => el.remove(), 450); }, dur);
+        }
+        setInterval(spawn, 2300); setTimeout(spawn, 700);
+    })();
+</script>
+</body>
+</html>
